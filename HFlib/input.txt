@@ -1,6 +1,6 @@
 PathName "point2point"
-Path.L_tx.lat 61.06669235229492
-Path.L_tx.lng -107.99170684814453
+Path.L_tx.lat 64.68630981445312
+Path.L_tx.lng 97.74530792236328
 TXAntFilePath "ISOTROPIC"
 TXGOS 2.15
 Path.L_rx.lat 46.603355407714844
@@ -16,7 +16,7 @@ Path.txpower -10.00
 Path.BW 2500.0
 Path.SNRr -29.0
 Path.SNRXXp 90
-Path.ManMadeNoise "QUIETRURAL"
+Path.ManMadeNoise "RESIDENTIAL"
 Path.Modulation "ANALOG"
 Path.SorL "SHORTPATH"
 RptFileFormat "RPT_OPMUF | RPT_BCR | RPT_PR | RPT_SNR | RPT_LONG | RPT_ELE"
@@ -28,4 +28,4 @@ UL.lat 46.603355407714844
 UL.lng 1.8883336782455444
 UR.lat 46.603355407714844
 UR.lng 1.8883336782455444
-DataFilePath "/home/luke/Projects/HFPilot/HFlib/Data/"
+DataFilePath "C:/Users/Luke/Documents/HFPilot/HFlib/Data/"

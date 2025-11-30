@@ -38,21 +38,18 @@ localedir = pathlib.Path(__file__).resolve().parent / 'lang'
 
 import gi
 gi.require_version("Gtk", "3.0")
-gi.require_version('Geoclue', '2.0')
 gi.require_version('OsmGpsMap', '1.0')
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GdkPixbuf
 from gi.repository import GObject
-from gi.repository import Pango
+#from gi.repository import Pango
 import time
 import random
 import re
 import datetime
-from gi.repository import cairo
-
-from gi.repository import Geoclue
+#from gi.repository import cairo
 import math
 import shutil
 import urllib.request
@@ -480,7 +477,10 @@ DataFilePath "!!CWD!!/HFlib/Data/"
             tx = self.txmark.get_point().get_degrees()
             rx = self.rxmark.get_point().get_degrees()
             outfile.write(values.replace('!!RXLAT!!',str(rx.lat)).replace('!!RXLON!!',str(rx.lon)).replace('!!TXLAT!!',str(tx.lat)).replace('!!TXLON!!',str(tx.lon)).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
-        returnval = os.system('HFlib/ITURHFProp HFlib/input.txt HFlib/output.txt')
+        if os.name == 'nt':
+            returnval = os.system(os.path.abspath('HFlib\\ITURHFProp_x64.exe')+' '+os.path.abspath('HFlib\\input.txt')+' '+os.path.abspath('HFlib\\output.txt'))
+        else:
+            returnval = os.system('HFlib/ITURHFProp HFlib/input.txt HFlib/output.txt')
         if returnval:
             print('fail :()')
         else:
