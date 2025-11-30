@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   id="svg3873"
+   sodipodi:docname="RX.svg"
+   viewBox="0 0 64 64"
+   version="1.1"
+   inkscape:version="1.4.2 (2aeb623e1d, 2025-05-12)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1" />
+  <title
+     id="title2993">map pin</title>
+  <sodipodi:namedview
+     id="base"
+     bordercolor="#666666"
+     inkscape:pageshadow="2"
+     inkscape:window-y="0"
+     pagecolor="#ffffff"
+     inkscape:window-height="1016"
+     inkscape:grid-bbox="true"
+     inkscape:window-maximized="1"
+     inkscape:zoom="5.5"
+     inkscape:window-x="0"
+     showgrid="true"
+     borderopacity="1.0"
+     inkscape:current-layer="g3841"
+     inkscape:cx="-19.727273"
+     inkscape:cy="30.454545"
+     inkscape:window-width="1920"
+     inkscape:pageopacity="0.0"
+     inkscape:document-units="px"
+     inkscape:showpageshadow="2"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1" />
+  <g
+     id="layer1"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer">
+    <g
+       id="g3841"
+       transform="matrix(.18403 0 0 .17534 214.35 -157.87)">
+      <path
+         id="path3047"
+         d="m-995.72 1225.8c-0.2729-0.7794-1.645-6.0275-3.049-11.662-4.441-17.823-12.122-36.988-22.546-56.255-5.9844-11.061-7.0667-12.824-24.551-40-28.252-43.911-33.217-56.241-32.173-79.89 0.9573-21.672 8.2717-37.909 24.149-53.61 13.179-13.032 27.807-20.549 45.601-23.432 44.097-7.1446 86.878 21.883 95.546 64.828 2.0208 10.012 1.5723 27.243-0.95271 36.604-2.77 10.269-13.883 31.045-29.589 55.315-28.348 43.807-39.082 65.687-47.119 96.05-3.1117 11.755-4.3985 14.673-5.3161 12.052z"
+         style="stroke:#04005a;stroke-width:5.7;fill:#2a7fff;stroke-opacity:1"
+         inkscape:connector-curvature="0" />
+      <text
+         xml:space="preserve"
+         style="font-size:81.6482px;line-height:137.3%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:none;stroke:#000000;stroke-width:5.56692px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         x="-1072.8219"
+         y="1044.8456"
+         id="text1"
+         transform="scale(0.9761042,1.0244808)"><tspan
+           sodipodi:role="line"
+           id="tspan1"
+           style="font-size:81.6482px;line-height:137.3%;fill:#000000;stroke-width:5.56692px"
+           x="-1072.8219"
+           y="1044.8456">RX</tspan></text>
+    </g>
+  </g>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://openclipart.org/">
+            <dc:title>Openclipart</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:title>map pin</dc:title>
+        <dc:date>2012-05-04T09:31:05</dc:date>
+        <dc:description />
+        <dc:source>https://openclipart.org/detail/169839/map-pin-by-netalloy</dc:source>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>netalloy</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>location</rdf:li>
+            <rdf:li>map pin</rdf:li>
+            <rdf:li>pointer</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>
