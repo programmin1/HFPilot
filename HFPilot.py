@@ -44,7 +44,8 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GdkPixbuf
 from gi.repository import GObject
-#from gi.repository import Pango
+from gi.repository import Pango
+from gi.repository.Gdk import Color
 import time
 import random
 import re
@@ -126,6 +127,8 @@ class UI:
         self.imageShow = self.builder.get_object('image')
         #self.dialog.set_redraw_on_allocate(True)
 
+        self.txWattEntry = self.builder.get_object('TxWattEntry')
+
         self.noiseValue = 'RESIDENTIAL';
         self.noiseComboBox = self.builder.get_object('noiseComboBox')
         self.noiseListStore = self.builder.get_object('noiseListStore')
@@ -136,6 +139,8 @@ class UI:
             ['QUITE', 'Quiet'],
             ['NOISY', 'Noisy RF']]:
             self.noiseListStore.append(item)
+        
+
 
         self.dialog.set_title('HFPilot')
         self.dialog.connect('destroy', self.cleanup)
@@ -238,6 +243,16 @@ class UI:
             code = model[active][0]
             self.noiseValue = code
             self.runPrediction()
+
+    def numericChanged(self,widget,data=None):
+        try:
+            float(widget.get_text()) # or show error red..
+            widget.modify_bg(Gtk.StateFlags.NORMAL, None)
+            self.runPrediction()
+        except ValueError:
+            COLOR_INVALID = Color(50000, 0, 0)
+            widget.modify_bg(Gtk.StateFlags.NORMAL, COLOR_INVALID)
+
 
     def linkLabel(self, lbltext, connectfunction):
         """ Like a label, clickable. https://stackoverflow.com/questions/5822191/ """
@@ -441,6 +456,7 @@ class UI:
         self.rtllistener.start()
 
     def runPrediction(self):
+        txpower = math.log(float(self.txWattEntry.get_text()))*4.342-30
         values = """PathName "point2point"
 Path.L_tx.lat !!TXLAT!!
 Path.L_tx.lng !!TXLON!!
@@ -455,7 +471,7 @@ Path.month  11
 Path.hour 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
 Path.SSN 110
 Path.frequency 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30
-Path.txpower -10.00
+Path.txpower !!TXPOWER!!
 Path.BW 2500.0
 Path.SNRr -29.0
 Path.SNRXXp 90
@@ -476,7 +492,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         with open('HFlib/input.txt','w') as outfile:
             tx = self.txmark.get_point().get_degrees()
             rx = self.rxmark.get_point().get_degrees()
-            outfile.write(values.replace('!!RXLAT!!',str(rx.lat)).replace('!!RXLON!!',str(rx.lon)).replace('!!TXLAT!!',str(tx.lat)).replace('!!TXLON!!',str(tx.lon)).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
+            outfile.write(values.replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',str(rx.lat)).replace('!!RXLON!!',str(rx.lon)).replace('!!TXLAT!!',str(tx.lat)).replace('!!TXLON!!',str(tx.lon)).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
         if os.name == 'nt':
             returnval = os.system(os.path.abspath('HFlib\\ITURHFProp_x64.exe')+' '+os.path.abspath('HFlib\\input.txt')+' '+os.path.abspath('HFlib\\output.txt'))
         else:

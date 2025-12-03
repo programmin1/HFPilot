@@ -471,7 +471,6 @@ Or enter the latitude and longitude directly:</property>
                                 <property name="can-focus">True</property>
                                 <property name="climb-rate">0.01</property>
                                 <property name="digits">2</property>
-                                <signal name="change-value" handler="numericChanged" swapped="no"/>
                               </object>
                             </child>
                           </object>
@@ -632,7 +631,6 @@ Or enter the latitude and longitude directly:</property>
                                 <property name="text" translatable="yes">0.00</property>
                                 <property name="climb-rate">0.01</property>
                                 <property name="digits">2</property>
-                                <signal name="change-value" handler="numericChanged" swapped="no"/>
                               </object>
                             </child>
                           </object>
