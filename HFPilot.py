@@ -129,6 +129,8 @@ class UI:
 
         self.txWattEntry = self.builder.get_object('TxWattEntry')
 
+        self.txAntenna = 'ISOTROPIC'
+        self.rxAntenna = 'ISOTROPIC'
         self.noiseValue = 'RESIDENTIAL';
         self.noiseComboBox = self.builder.get_object('noiseComboBox')
         self.noiseListStore = self.builder.get_object('noiseListStore')
@@ -139,7 +141,12 @@ class UI:
             ['QUITE', 'Quiet'],
             ['NOISY', 'Noisy RF']]:
             self.noiseListStore.append(item)
-        
+
+        self.txComboBox = self.builder.get_object('antennaTxComboBox')
+        self.rxComboBox = self.builder.get_object('antennaRxComboBox')
+        self.antennaListStore = self.builder.get_object('antennaListStore')
+        for ant in self.antennas():
+            self.antennaListStore.append(ant)
 
 
         self.dialog.set_title('HFPilot')
@@ -228,6 +235,29 @@ class UI:
         self.bgdl = None
 #        GObject.idle_add(self.updateMessage)
         
+    def antennas(self):
+        """
+        Return the [values, display string]
+        for the antennas.
+        """
+        values = [["ISOTROPIC","Isotropic"]]
+        #absdir = os.path.abspath('HFlib/Data/Antenna/NEC Files')
+        absdir = os.path.abspath('HFlib/Data/Antenna/T13 Files')
+        for file in os.listdir(absdir):
+            fullfile = os.path.join(absdir, file)
+            with open(fullfile) as infile:
+                for line in infile:
+                    name = line.strip()
+                    name = name[name.find("(")+1:]
+                    name = name[:name.find(')')]
+                    break;
+            
+            #name = file[file.find('(')+1:]
+            #name = name[:name.find(')')]
+            #values.append([fullfile,name])
+            values.append([fullfile, name])
+        return values
+        
 
     def credit_mapbox(self, obj, obj2):
         os.system('xdg-open https://www.mapbox.com/about/maps/')
@@ -243,6 +273,23 @@ class UI:
             code = model[active][0]
             self.noiseValue = code
             self.runPrediction()
+    
+    def txComboChanged(self,widget, data=None):
+        model = widget.get_model()
+        active = widget.get_active()
+        if active >=0:
+            code = model[active][0]
+            self.txAntenna=code
+            self.runPrediction()
+    
+    def rxComboChanged(self,widget, data=None):
+        model = widget.get_model()
+        active = widget.get_active()
+        if active >=0:
+            code = model[active][0]
+            self.rxAntenna=code
+            self.runPrediction()
+    
 
     def numericChanged(self,widget,data=None):
         try:
@@ -460,11 +507,11 @@ class UI:
         values = """PathName "point2point"
 Path.L_tx.lat !!TXLAT!!
 Path.L_tx.lng !!TXLON!!
-TXAntFilePath "ISOTROPIC"
+TXAntFilePath "!!TXANT!!"
 TXGOS 2.15
 Path.L_rx.lat !!RXLAT!!
 Path.L_rx.lng !!RXLON!!
-RXAntFilePath "ISOTROPIC"
+RXAntFilePath "!!RXANT!!"
 RXGOS 2.15
 Path.year 2025
 Path.month  11
@@ -492,7 +539,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         with open('HFlib/input.txt','w') as outfile:
             tx = self.txmark.get_point().get_degrees()
             rx = self.rxmark.get_point().get_degrees()
-            outfile.write(values.replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',str(rx.lat)).replace('!!RXLON!!',str(rx.lon)).replace('!!TXLAT!!',str(tx.lat)).replace('!!TXLON!!',str(tx.lon)).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
+            outfile.write(values.replace('!!TXANT!!',self.txAntenna).replace('!!RXANT!!',self.rxAntenna).replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',str(rx.lat)).replace('!!RXLON!!',str(rx.lon)).replace('!!TXLAT!!',str(tx.lat)).replace('!!TXLON!!',str(tx.lon)).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
         if os.name == 'nt':
             returnval = os.system(os.path.abspath('HFlib\\ITURHFProp_x64.exe')+' '+os.path.abspath('HFlib\\input.txt')+' '+os.path.abspath('HFlib\\output.txt'))
         else:
