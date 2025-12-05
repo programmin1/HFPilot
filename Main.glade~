@@ -2,6 +2,14 @@
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
+  <object class="GtkListStore" id="antennaListStore">
+    <columns>
+      <!-- column-name code -->
+      <column type="gchararray"/>
+      <!-- column-name legible -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkListStore" id="noiseListStore">
     <columns>
       <!-- column-name code -->
@@ -433,9 +441,17 @@ Or enter the latitude and longitude directly:</property>
                             <property name="can-focus">False</property>
                             <property name="left-padding">12</property>
                             <child>
-                              <object class="GtkComboBox">
+                              <object class="GtkComboBox" id="antennaTxComboBox">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
+                                <property name="model">antennaListStore</property>
+                                <signal name="changed" handler="txComboChanged" swapped="no"/>
+                                <child>
+                                  <object class="GtkCellRendererText" id="renderertx"/>
+                                  <attributes>
+                                    <attribute name="text">1</attribute>
+                                  </attributes>
+                                </child>
                               </object>
                             </child>
                           </object>
@@ -444,7 +460,7 @@ Or enter the latitude and longitude directly:</property>
                           <object class="GtkLabel">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">Antenna:</property>
+                            <property name="label" translatable="yes">Antenna Transmit:</property>
                           </object>
                         </child>
                       </object>
@@ -593,9 +609,17 @@ Or enter the latitude and longitude directly:</property>
                             <property name="can-focus">False</property>
                             <property name="left-padding">12</property>
                             <child>
-                              <object class="GtkComboBox">
+                              <object class="GtkComboBox" id="antennaRxComboBox">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
+                                <property name="model">antennaListStore</property>
+                                <signal name="changed" handler="rxComboChanged" swapped="no"/>
+                                <child>
+                                  <object class="GtkCellRendererText" id="rendererrx"/>
+                                  <attributes>
+                                    <attribute name="text">1</attribute>
+                                  </attributes>
+                                </child>
                               </object>
                             </child>
                           </object>
@@ -604,7 +628,7 @@ Or enter the latitude and longitude directly:</property>
                           <object class="GtkLabel">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">Antenna:</property>
+                            <property name="label" translatable="yes">Antenna Receive:</property>
                           </object>
                         </child>
                       </object>
@@ -684,13 +708,28 @@ Or enter the latitude and longitude directly:</property>
           </packing>
         </child>
         <child>
-          <object class="GtkImage" id="image">
+          <object class="GtkScrolledWindow">
+            <property name="height-request">600</property>
             <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <property name="stock">gtk-dialog-error</property>
+            <property name="can-focus">True</property>
+            <property name="shadow-type">in</property>
+            <child>
+              <object class="GtkViewport">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <child>
+                  <object class="GtkImage" id="image">
+                    <property name="height-request">800</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="stock">gtk-dialog-error</property>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">4</property>
           </packing>

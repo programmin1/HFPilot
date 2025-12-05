@@ -2,7 +2,7 @@
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
-  <object class="GtkListStore" id="noiseListStore">
+  <object class="GtkListStore" id="antennaListStore">
     <columns>
       <!-- column-name code -->
       <column type="gchararray"/>
@@ -10,7 +10,7 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="antennaListStore">
+  <object class="GtkListStore" id="noiseListStore">
     <columns>
       <!-- column-name code -->
       <column type="gchararray"/>
@@ -708,13 +708,28 @@ Or enter the latitude and longitude directly:</property>
           </packing>
         </child>
         <child>
-          <object class="GtkImage" id="image">
+          <object class="GtkScrolledWindow">
+            <property name="height-request">600</property>
             <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <property name="stock">gtk-dialog-error</property>
+            <property name="can-focus">True</property>
+            <property name="shadow-type">in</property>
+            <child>
+              <object class="GtkViewport">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <child>
+                  <object class="GtkImage" id="image">
+                    <property name="height-request">800</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="stock">gtk-dialog-error</property>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">4</property>
           </packing>

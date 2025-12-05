@@ -148,7 +148,6 @@ class UI:
         for ant in self.antennas():
             self.antennaListStore.append(ant)
 
-
         self.dialog.set_title('HFPilot')
         self.dialog.connect('destroy', self.cleanup)
 
@@ -216,13 +215,11 @@ class UI:
         self.mapOverlay.show_all()
         self.latlon_entry = Gtk.Entry()
 
-
         #Adding image in the render code causes infinite loop.
         icon_app_path = '/usr/share/icons/hicolor/scalable/apps/repeaterSTART.svg'
         if os.path.exists(icon_app_path):
             pixbuf = GdkPixbuf.Pixbuf.new_from_file(icon_app_path)
             self.dialog.set_icon(pixbuf)
-            
         #add ability to test custom map URIs
         #ex = Gtk.Expander(label="<b>Display Options</b>")
         #ex.props.use_markup = True
@@ -233,7 +230,6 @@ class UI:
         #GLib.timeout_add(500, self.print_tiles)
         #GLib.timeout_add(1000, self.downloadBackground)
         self.bgdl = None
-#        GObject.idle_add(self.updateMessage)
         
     def antennas(self):
         """
@@ -251,13 +247,11 @@ class UI:
                     name = name[name.find("(")+1:]
                     name = name[:name.find(')')]
                     break;
-            
             #name = file[file.find('(')+1:]
             #name = name[:name.find(')')]
             #values.append([fullfile,name])
             values.append([fullfile, name])
         return values
-        
 
     def credit_mapbox(self, obj, obj2):
         os.system('xdg-open https://www.mapbox.com/about/maps/')
@@ -316,7 +310,6 @@ class UI:
         icon = GdkPixbuf.Pixbuf.new_from_file_at_size ("TX.svg", self.iconsize,self.iconsize)
         self.txmark = self.osm.image_add(lat,lon,icon)
         self.runPrediction()
-
 
     def setRX(self,lat,lon):
         if self.rxmark:
@@ -531,7 +524,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
             #Load the data...
             ignoreline = True
             with open('HFlib/output.txt') as infile:
-                self.BCRs = [[0 for c in range(29)] for row in range(24)]
+                self.BCRs = [[0 for c in range(24)] for row in range(29)]
                 for line in infile:
                     if ignoreline and line.find('Calculated Parameters')==-1:
                         ignoreline = False #Read bottom of file, grid:
@@ -542,7 +535,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
                             m,hr,freq,ele,OMUF,Pr,SNR,BCR,FSMW,distdB,lossdB,upperFreq,lowerFreq,corrT,corrR,gain_tl,gain_rw,gyrofreq,scalef = values
                             hr = int(hr)-1
                             freq = int(freq)-2
-                            print('hr %s fre q %s ' % (hr, freq))
+                            #print('hr %s fre q %s ' % (hr, freq))
                             color = (0,0,0)
                             BCR=BCR/100
                             if(BCR>.9):
@@ -563,8 +556,8 @@ DataFilePath "!!CWD!!/HFlib/Data/"
                                 color=(40,0,0)
                             elif BCR>.1:
                                 color=(20,0,0)
-                            self.BCRs[hr][freq] = {'value': "%.2f" % ( BCR, ) ,'color':color}
-                print(self.BCRs)
+                            self.BCRs[freq][hr] = {'value': "%.2f" % ( BCR, ) ,'color':color}
+                #print(self.BCRs)
                 self.create_colored_grid(self.BCRs, 30)
                 self.imageShow.set_from_file('grid_output.png')
             
@@ -580,10 +573,13 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         """
         rows = len(grid_data)
         cols = len(grid_data[0]) if rows > 0 else 0
+
+        leftmargin = 30
+        topmargin = 50
         
         # Create image
-        img_width = cols * cell_size
-        img_height = rows * cell_size
+        img_width = cols * cell_size + leftmargin
+        img_height = rows * cell_size + topmargin
         img = Image.new('RGB', (img_width, img_height), 'white')
         draw = ImageDraw.Draw(img)
         
@@ -595,10 +591,18 @@ DataFilePath "!!CWD!!/HFlib/Data/"
                 font = ImageFont.truetype("arial.ttf", cell_size // 3)
             except:
                 font = ImageFont.load_default()
-        
+        draw.text((10,1), 'Propagation HF Estimate', fill='black', font=font)
+        draw.text((20,16), 'Time UTC →', fill='black', font=font)
+        draw.text((2,165), "M\nH\nZ", fill='black', font=font)
+        for i in range(29): #freq
+            draw.text((13, topmargin+6 +i*cell_size), str(i+1), fill="black", font=font)
+
+        for i in range(24): #HR:
+            draw.text( (leftmargin + 9 + i * cell_size, topmargin-12), str(i+1), fill="black", font=font)
+
         # Draw grid
-        for row in range(rows):
-            for col in range(cols):
+        for row in range(rows): #HR
+            for col in range(cols): #FREQ
                 cell = grid_data[row][col]
                 value = cell['value']
                 color = cell['color']
@@ -610,7 +614,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
                 y2 = y1 + cell_size
                 
                 # Draw cell background
-                draw.rectangle([x1, y1, x2, y2], fill=color, outline='black', width=2)
+                draw.rectangle([leftmargin+x1, topmargin+y1, leftmargin+x2, topmargin+y2], fill=color, outline='black', width=2)
                 
                 # Draw text centered in cell
                 text = str(value)
@@ -618,8 +622,8 @@ DataFilePath "!!CWD!!/HFlib/Data/"
                 text_width = bbox[2] - bbox[0]
                 text_height = bbox[3] - bbox[1]
                 
-                text_x = x1 + (cell_size - text_width) // 2
-                text_y = y1 + (cell_size - text_height) // 2
+                text_x = leftmargin + x1 + (cell_size - text_width) // 2
+                text_y = topmargin  + y1 + (cell_size - text_height) // 2
                 
                 # Choose text color based on background brightness
                 brightness = sum(color) / 3
