@@ -456,19 +456,7 @@ class UI:
         state = event.get_state()
         lat,lon = self.osm.get_event_location(event).get_degrees()
         print('clicked %s,%s' % (lat,lon))
-        near = 999999
-        nearest = None
-        self.allrepeaters = sorted(self.allrepeaters, key = lambda repeater : repeater.distance(lat,lon))
-        cnt = 0
-        return
-        for item in self.allrepeaters:
-            distance = item.distance(lat,lon)
-            self.addToList(item, lat,lon)
-            print(distance)
-            cnt += 1
-            if cnt > 5:
-                break
-        self.listbox.show_all()
+        
 
         left    = event.button == 1 and state == 0
         middle  = event.button == 2 or (event.button == 1 and state & Gdk.ModifierType.SHIFT_MASK)
@@ -478,19 +466,6 @@ class UI:
         GDK_2BUTTON_PRESS = getattr(Gdk.EventType, "2BUTTON_PRESS")
         GDK_3BUTTON_PRESS = getattr(Gdk.EventType, "3BUTTON_PRESS")
 
-        if event.type == GDK_3BUTTON_PRESS:
-            if middle:
-                if self.last_image is not None:
-                    self.osm.image_remove(self.last_image)
-                    self.last_image = None
-        elif event.type == GDK_2BUTTON_PRESS:
-            if left:
-                self.osm.gps_add(lat, lon, heading=random.random()*360)
-            if middle:
-                pb = GdkPixbuf.Pixbuf.new_from_file_at_size ("poi.png", 24,24)
-                self.last_image = self.osm.image_add(lat,lon,pb)
-            if right:
-                pass
 
 
     def playRTLSDR(self, mhz):
@@ -541,7 +516,13 @@ DataFilePath "!!CWD!!/HFlib/Data/"
             rx = self.rxmark.get_point().get_degrees()
             outfile.write(values.replace('!!TXANT!!',self.txAntenna).replace('!!RXANT!!',self.rxAntenna).replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',str(rx.lat)).replace('!!RXLON!!',str(rx.lon)).replace('!!TXLAT!!',str(tx.lat)).replace('!!TXLON!!',str(tx.lon)).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
         if os.name == 'nt':
-            returnval = os.system(os.path.abspath('HFlib\\ITURHFProp_x64.exe')+' '+os.path.abspath('HFlib\\input.txt')+' '+os.path.abspath('HFlib\\output.txt'))
+            hflib_path = os.path.abspath('HFlib\\')
+            #os.environ['PATH'] = hflib_path + os.pathsep + os.environ['PATH']
+            original_dir = os.getcwd()
+            # Change to the directory containing the executable
+            os.chdir(os.path.abspath('HFlib'))
+            returnval = os.system('ITURHFProp.exe input.txt output.txt')
+            os.chdir(original_dir)
         else:
             returnval = os.system('HFlib/ITURHFProp HFlib/input.txt HFlib/output.txt')
         if returnval:
