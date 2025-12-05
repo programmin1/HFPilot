@@ -651,6 +651,4 @@ DataFilePath "!!CWD!!/HFlib/Data/"
 
 if __name__ == "__main__":
     u = UI()
-    if os.name == "nt": Gdk.threads_enter()
     Gtk.main()
-    if os.name == "nt": Gdk.threads_leave()
