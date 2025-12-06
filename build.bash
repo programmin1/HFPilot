@@ -1,5 +1,6 @@
 # build deploy directory:
-/mingw64/bin/pyinstaller -i "resources/hfpilot.ico" ./hfpilot.spec
+PATH=/mingw64/bin:$PATH
+/mingw64/bin/pyinstaller ./hfpilot.spec
 echo "Cleaning up."
 rm -rf dist/hfpilot/share/locale
 rm -rf dist/hfpilot/share/icons/hicolor

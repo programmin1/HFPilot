@@ -7,18 +7,18 @@
 # If you change the names "app.exe", "logo.ico", or "license.rtf" you should do a search and replace - they
 # show up in a few places.
 # All the other settings can be tweaked by editing the !defines at the top of this script
-!define APPNAME "RepeaterSTART"
-!define COMPANYNAME "Hearham.live"
-!define DESCRIPTION "Repeater-START (Showing The Amateur-radio Repeaters Tools)"
+!define APPNAME "HFPilot"
+!define COMPANYNAME "Great Maps llc"
+!define DESCRIPTION "HFPilot, Shortwave and Ham radio propagation"
 # These three must be integers
-!define VERSIONMAJOR 1
-!define VERSIONMINOR 0
-!define VERSIONBUILD 3
+!define VERSIONMAJOR 0
+!define VERSIONMINOR 1
+!define VERSIONBUILD 0
 # These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
 # It is possible to use "mailto:" links in here to open the email client
-!define HELPURL "http://hearham.com/repeaters" # "Support Information" link
+!define HELPURL "http://hearham.com/" # "Support Information" link
 !define UPDATEURL "http://hearham.com/" # "Product Updates" link
-!define ABOUTURL "http://hearham.com/repeaters" # "Publisher" link
+!define ABOUTURL "http://hearham.com/" # "Publisher" link
 # This is the size (in kB) of all the files copied into "Program Files"
 !define INSTALLSIZE 100000
  
@@ -30,8 +30,8 @@ InstallDir "$PROGRAMFILES\${APPNAME}"
 LicenseData "license.rtf"
 # This will be in the installer/uninstaller's title bar
 Name "${APPNAME}"
-Icon "resources/RepeaterSTART.ico"
-outFile "RepeaterSTARTInstall.exe"
+Icon "resources/icon.ico"
+outFile "HFPilotInstall.exe"
  
 !include LogicLib.nsh
  
@@ -59,8 +59,8 @@ section "install"
 	# Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
 	setOutPath $INSTDIR
 	# Files added here should be removed by the uninstaller (see section "uninstall")
-	file /r "dist\repeaterstart\"
-	file "resources\RepeaterSTART.ico"
+	file /r "dist\hfpilot\"
+	file "resources\icon.ico"
 	# Add any other files for the install directory (license files, app data, etc) here
  
 	# Uninstaller - See function un.onInit and section "uninstall" for configuration
@@ -68,7 +68,7 @@ section "install"
  
 	# Start Menu
 	createDirectory "$SMPROGRAMS\${APPNAME}"
-	createShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\repeaterstart.exe" "" "$INSTDIR\RepeaterSTART.ico"
+	createShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\hfpilot.exe" "" "$INSTDIR\RepeaterSTART.ico"
  
 	# Registry information for add/remove programs
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${COMPANYNAME} ${APPNAME}" "DisplayName" "${COMPANYNAME} - ${APPNAME} - ${DESCRIPTION}"

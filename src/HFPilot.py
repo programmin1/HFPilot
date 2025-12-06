@@ -112,7 +112,7 @@ class BackgroundDownloadZip(BackgroundDownload):
                 prozip.extractall(path=userFile('.hidden'))
             os.remove(self.filename)
         else:
-            print('Unable to update premium RepeaterSTART data.')
+            print('Unable to update')
 
 class UI:
     def __init__(self):
