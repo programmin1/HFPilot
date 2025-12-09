@@ -46,6 +46,8 @@ except Exception as e:
     print(f"Failed to set TLS database: {e}")
 
 from PIL import Image, ImageDraw, ImageFont
+import sys
+import os
 os.environ['LD_LIBRARY_PATH'] = 'HFlib/'
 import os.path
 import random
@@ -171,6 +173,21 @@ class UI:
 
         self.txComboBox = self.builder.get_object('antennaTxComboBox')
         self.rxComboBox = self.builder.get_object('antennaRxComboBox')
+
+        self.trafficComboBox = self.builder.get_object('trafficComboBox')
+        self.trafficListStore = self.builder.get_object('trafficListStore')
+        for item in [
+            ['500,0', 'CW morse'],
+            ['50,-3','FT8'],
+            ['3000,6','SSB, usable'],
+            ['3000,15','SSB, marginal'],
+            ['3000,17','Voice/1200bps data'],
+            ['3000,19','Voice/2400bps data']]:
+            self.trafficListStore.append(item)
+        
+        print(f"Traffic ListStore has {len(self.trafficListStore)} items")
+
+
         self.antennaListStore = self.builder.get_object('antennaListStore')
         for ant in self.antennas():
             self.antennaListStore.append(ant)
@@ -201,6 +218,8 @@ class UI:
 
         self.rxmark = False #osm marker
         self.txmark = False
+        self.BW=3000 #default bandwidth input
+        self.SNR=17  #default Signalnoiseratio
         self.iconsize = 64
 
         osd = osmgpsmap.MapOsd(
@@ -309,6 +328,15 @@ class UI:
         if active >=0:
             code = model[active][0]
             self.rxAntenna=code
+            self.runPrediction()
+
+    def trafficComboChanged(self,widget, data=None):
+        model = widget.get_model()
+        active = widget.get_active()
+        if(active >=0):
+            code = model[active][0]
+            self.BW = code.split(',')[0]
+            self.SNR = code.split(',')[1]
             self.runPrediction()
     
 
@@ -678,4 +706,6 @@ DataFilePath "!!CWD!!/HFlib/Data/"
 
 if __name__ == "__main__":
     u = UI()
+    if os.name == "nt": Gdk.threads_enter()
     Gtk.main()
+    if os.name == "nt": Gdk.threads_leave()
