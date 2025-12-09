@@ -16,9 +16,36 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 """
-from PIL import Image, ImageDraw, ImageFont
-import sys
 import os
+import sys
+
+if getattr(sys, 'frozen', False):
+    # Running as PyInstaller exe
+    base_path = sys._MEIPASS
+    
+    # Point GIO to the bundled modules
+    os.environ['GIO_MODULE_DIR'] = os.path.join(base_path, 'lib', 'gio', 'modules')
+    
+    # Point gnutls to bundled certs
+    cert_path = os.path.abspath('ca-bundle.crt')
+    os.environ['GNUTLS_TRUST_FILE'] = cert_path
+    os.environ['GNUTLS_SYSTEM_PRIORITY_FILE'] = os.path.join(base_path, 'etc', 'gnutls', 'config')
+else:
+    # Running as script
+    cert_path = os.path.abspath('ca-bundle.crt')
+    os.environ['GNUTLS_TRUST_FILE'] = cert_path
+
+import gi
+gi.require_version('Gio', '2.0')
+from gi.repository import Gio, GLib
+# Try to set TLS database directly, or OSM gps map does not load.
+try:
+    tls_db = Gio.TlsFileDatabase.new(cert_path)
+    Gio.TlsBackend.get_default().set_default_database(tls_db)
+except Exception as e:
+    print(f"Failed to set TLS database: {e}")
+
+from PIL import Image, ImageDraw, ImageFont
 os.environ['LD_LIBRARY_PATH'] = 'HFlib/'
 import os.path
 import random
@@ -131,7 +158,7 @@ class UI:
 
         self.txAntenna = 'ISOTROPIC'
         self.rxAntenna = 'ISOTROPIC'
-        self.noiseValue = 'RESIDENTIAL';
+        self.noiseValue = 'RESIDENTIAL'
         self.noiseComboBox = self.builder.get_object('noiseComboBox')
         self.noiseListStore = self.builder.get_object('noiseListStore')
         for item in [

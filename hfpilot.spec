@@ -29,7 +29,8 @@ datas = [
     ('src/RX.svg', '.'),
     ('src/mapbox.svg', '.'),
     ('src/Main.glade', '.'),
-    ('src/README-WINDOWS.TXT', '.') 
+    ('src/README-WINDOWS.TXT', '.'),
+    ('src/ca-bundle.crt','.')
 ]
 
 a = Analysis(['src/HFPilot.py'],
