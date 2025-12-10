@@ -14,7 +14,6 @@ binaries = [
     ('C:/msys64/mingw64/bin/libproxy-1.dll', '.'),
     ('C:/msys64/mingw64/bin/libgio-2.0-0.dll', '.'),
     ('C:/msys64/mingw64/bin/libpython3.12.dll', '.'),
-    ('C:/msys64/mingw64/bin/libpython3.12.dll', 'python312.dll'),
 ]
 hiddenimports = []
 datas = [
@@ -32,6 +31,12 @@ datas = [
     ('src/README-WINDOWS.TXT', '.'),
     ('src/ca-bundle.crt','.')
 ]
+excludes = [
+    'tkinter',
+    'matplotlib',
+    'numpy',
+
+]
 
 a = Analysis(['src/HFPilot.py'],
              pathex=[],
@@ -41,7 +46,7 @@ a = Analysis(['src/HFPilot.py'],
              hookspath=['./extra-hooks/'],
              hooksconfig={},
              runtime_hooks=[],
-             excludes=[],
+             excludes=excludes,
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,

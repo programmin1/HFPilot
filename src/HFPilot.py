@@ -18,6 +18,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 """
 import os
 import sys
+import ssl
 
 if getattr(sys, 'frozen', False):
     # Running as PyInstaller exe
@@ -45,6 +46,8 @@ try:
 except Exception as e:
     print(f"Failed to set TLS database: {e}")
 
+ssl_context = ssl.create_default_context(cafile=cert_path)
+
 from PIL import Image, ImageDraw, ImageFont
 import sys
 import os
@@ -56,9 +59,9 @@ import json
 import pathlib
 
 localedir = pathlib.Path(__file__).resolve().parent / 'lang'
-#gettext.textdomain('hfprops')
-#espanol = gettext.translation('hfprops', localedir=localedir, languages=['es'])
-#gettext.bindtextdomain('hfprops', localedir)
+#gettext.textdomain('HFPilot')
+#espanol = gettext.translation('HFPilot', localedir=localedir, languages=['es'])
+#gettext.bindtextdomain('HFPilot', localedir)
 #if os.environ['LANG'][:2]=='es':
 #    espanol.install()
 #    __ = espanol.gettext
@@ -122,7 +125,7 @@ class BackgroundDownload(Thread):
     def run(self):
         try:
             tmpfile = '/tmp/output'+str(int(time.time()))+str(random.random())
-            urllib.request.urlretrieve(self.url, tmpfile)
+            urllib.request.urlretrieve(self.url, tmpfile, context=ssl_context)
             shutil.move( tmpfile, self.filename )
             self.finished = True
             self.success = True
@@ -184,9 +187,6 @@ class UI:
             ['3000,17','Voice/1200bps data'],
             ['3000,19','Voice/2400bps data']]:
             self.trafficListStore.append(item)
-        
-        print(f"Traffic ListStore has {len(self.trafficListStore)} items")
-
 
         self.antennaListStore = self.builder.get_object('antennaListStore')
         for ant in self.antennas():
@@ -227,7 +227,7 @@ class UI:
                 show_zoom=True,
                 show_crosshair=False)
         
-        icon_app_path = '/usr/share/icons/hicolor/scalable/apps/HFProps.svg'
+        icon_app_path = '/usr/share/icons/hicolor/scalable/apps/HFPilot.svg'
         if os.path.exists(icon_app_path):
             pixbuf = GdkPixbuf.Pixbuf.new_from_file(icon_app_path)
             surface=Gdk.cairo_surface_create_from_pixbuf(pixbuf, 0, None)
@@ -399,10 +399,10 @@ class UI:
                         'https://hearham.com/api/whatthreewords/v1?words=%s' % (urllib.parse.quote(srctext),), 
                         data=None,
                         headers={
-                            'User-Agent': 'HFProps/'+self.version
+                            'User-Agent': 'HFPilot/'+self.version
                         }
                     )
-                    f = urllib.request.urlopen(req)
+                    f = urllib.request.urlopen(req, context=ssl_context)
                     objs = json.loads(f.read().decode('utf-8'))
                     if not objs:
                         self.latlon_entry.set_text('Invalid what3words.com address.')
@@ -414,10 +414,10 @@ class UI:
                         'https://nominatim.openstreetmap.org/search?q=%s&format=json&limit=50' % (urllib.parse.quote(srctext),), 
                         data=None,
                         headers={
-                            'User-Agent': 'HFProps/'+self.version
+                            'User-Agent': 'HFPilot/'+self.version
                         }
                     )
-                    f = urllib.request.urlopen(req)
+                    f = urllib.request.urlopen(req, context=ssl_context)
                     objs = json.loads(f.read().decode('utf-8'))
                     for item in objs:
                         finishfunction(float(item['lat']), float(item['lon']))
@@ -427,14 +427,15 @@ class UI:
                             'https://hamcall.dev/'+srctext+'.json', 
                             data=None,
                             headers={
-                                'User-Agent': 'HFProps/'+self.version
+                                'User-Agent': 'HFPilot/'+self.version
                             }
                         )
-                        f=urllib.request.urlopen(req)
+                        f=urllib.request.urlopen(req, context=ssl_context)
                         calllookup = json.loads(f.read().decode('utf-8'))
                         finishfunction(float(calllookup['location']['lat']), float(calllookup['location']['lon']))
-            except urllib.error.URLError:
-                self.latlon_entry.set_text('Network error')
+            except urllib.error.URLError as e:
+                print("Could not find "+srctext)
+                print(e)
                 
     def zoom_in_clicked(self, button):
         self.osm.set_zoom(self.osm.props.zoom + 1)
@@ -537,13 +538,13 @@ Path.L_rx.lng !!RXLON!!
 RXAntFilePath "!!RXANT!!"
 RXGOS 2.15
 Path.year 2025
-Path.month  11
+Path.month  12
 Path.hour 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
 Path.SSN 110
 Path.frequency 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30
 Path.txpower !!TXPOWER!!
-Path.BW 2500.0
-Path.SNRr -29.0
+Path.BW !!BW!!
+Path.SNRr !!SNR!!
 Path.SNRXXp 90
 Path.ManMadeNoise "!!NOISE!!"
 Path.Modulation "ANALOG"
@@ -562,19 +563,24 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         with open('HFlib/input.txt','w') as outfile:
             tx = self.txmark.get_point().get_degrees()
             rx = self.rxmark.get_point().get_degrees()
-            outfile.write(values.replace('!!TXANT!!',self.txAntenna).replace('!!RXANT!!',self.rxAntenna).replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',str(rx.lat)).replace('!!RXLON!!',str(rx.lon)).replace('!!TXLAT!!',str(tx.lat)).replace('!!TXLON!!',str(tx.lon)).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
+            outfile.write(values.replace('!!TXANT!!',self.txAntenna).replace('!!BW!!',str(self.BW)).replace('!!SNR!!',str(self.SNR)).replace('!!RXANT!!',self.rxAntenna).replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',str(rx.lat)).replace('!!RXLON!!',str(rx.lon)).replace('!!TXLAT!!',str(tx.lat)).replace('!!TXLON!!',str(tx.lon)).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
         if os.name == 'nt':
-            hflib_path = os.path.abspath('HFlib\\')
-            #os.environ['PATH'] = hflib_path + os.pathsep + os.environ['PATH']
+            hflib_path = os.path.abspath('HFlib')
             original_dir = os.getcwd()
             # Change to the directory containing the executable
             os.chdir(os.path.abspath('HFlib'))
-            returnval = os.system('ITURHFProp.exe input.txt output.txt')
+            returnval = subprocess.run(
+                ['ITURHFProp.exe', 'input.txt', 'output.txt'],
+                creationflags=subprocess.CREATE_NO_WINDOW,  # Windows only
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                cwd=hflib_path
+            ).returncode
             os.chdir(original_dir)
         else:
             returnval = os.system('HFlib/ITURHFProp HFlib/input.txt HFlib/output.txt')
         if returnval:
-            print('fail :()')
+            print('fail :() ')
         else:
             #Load the data...
             ignoreline = True
@@ -650,7 +656,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         draw.text((20,16), 'Time UTC →', fill='black', font=font)
         draw.text((2,165), "M\nH\nZ", fill='black', font=font)
         for i in range(29): #freq
-            draw.text((13, topmargin+6 +i*cell_size), str(i+1), fill="black", font=font)
+            draw.text((13, topmargin+6 +i*cell_size), str(i+2), fill="black", font=font)
 
         for i in range(24): #HR:
             draw.text( (leftmargin + 9 + i * cell_size, topmargin-12), str(i+1), fill="black", font=font)
