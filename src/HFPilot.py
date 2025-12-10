@@ -560,7 +560,7 @@ UR.lat !!RXLAT!!
 UR.lng !!RXLON!!
 DataFilePath "!!CWD!!/HFlib/Data/"
 """
-        with open('HFlib/input.txt','w') as outfile:
+        with open(userFile('input.txt'),'w') as outfile:
             tx = self.txmark.get_point().get_degrees()
             rx = self.rxmark.get_point().get_degrees()
             outfile.write(values.replace('!!TXANT!!',self.txAntenna).replace('!!BW!!',str(self.BW)).replace('!!SNR!!',str(self.SNR)).replace('!!RXANT!!',self.rxAntenna).replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',str(rx.lat)).replace('!!RXLON!!',str(rx.lon)).replace('!!TXLAT!!',str(tx.lat)).replace('!!TXLON!!',str(tx.lon)).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
@@ -570,7 +570,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
             # Change to the directory containing the executable
             os.chdir(os.path.abspath('HFlib'))
             returnval = subprocess.run(
-                ['ITURHFProp.exe', 'input.txt', 'output.txt'],
+                ['ITURHFProp.exe', userFile('input.txt'), userFile('output.txt')],
                 creationflags=subprocess.CREATE_NO_WINDOW,  # Windows only
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
@@ -584,7 +584,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         else:
             #Load the data...
             ignoreline = True
-            with open('HFlib/output.txt') as infile:
+            with open(userFile('output.txt')) as infile:
                 self.BCRs = [[0 for c in range(24)] for row in range(29)]
                 for line in infile:
                     if ignoreline and line.find('Calculated Parameters')==-1:
@@ -619,8 +619,8 @@ DataFilePath "!!CWD!!/HFlib/Data/"
                                 color=(20,0,0)
                             self.BCRs[freq][hr] = {'value': "%.2f" % ( BCR, ) ,'color':color}
                 #print(self.BCRs)
-                self.create_colored_grid(self.BCRs, 30)
-                self.imageShow.set_from_file('grid_output.png')
+                self.create_colored_grid(self.BCRs, 30, userFile('grid_output.png'))
+                self.imageShow.set_from_file(userFile('grid_output.png'))
             
 
     def create_colored_grid(self, grid_data, cell_size=100, output_file="grid_output.png"):

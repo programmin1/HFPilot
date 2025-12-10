@@ -7,7 +7,7 @@
 # If you change the names "app.exe", "logo.ico", or "license.rtf" you should do a search and replace - they
 # show up in a few places.
 # All the other settings can be tweaked by editing the !defines at the top of this script
-!define APPNAME "HFPilot"
+!define APPNAME "HF Pilot"
 !define COMPANYNAME "Great Maps llc"
 !define DESCRIPTION "HFPilot, Shortwave and Ham radio propagation"
 # These three must be integers
@@ -30,7 +30,7 @@ InstallDir "$PROGRAMFILES\${APPNAME}"
 LicenseData "license.rtf"
 # This will be in the installer/uninstaller's title bar
 Name "${APPNAME}"
-Icon "resources/icon.ico"
+Icon "resources/hfpilot.ico"
 outFile "HFPilotInstall.exe"
  
 !include LogicLib.nsh
@@ -60,7 +60,7 @@ section "install"
 	setOutPath $INSTDIR
 	# Files added here should be removed by the uninstaller (see section "uninstall")
 	file /r "dist\hfpilot\"
-	file "resources\icon.ico"
+	file "resources\hfpilot.ico"
 	# Add any other files for the install directory (license files, app data, etc) here
  
 	# Uninstaller - See function un.onInit and section "uninstall" for configuration
