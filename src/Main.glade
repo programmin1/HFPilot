@@ -2,6 +2,16 @@
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="upper">100</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment2">
+    <property name="upper">100</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+  </object>
   <object class="GtkListStore" id="antennaListStore">
     <columns>
       <!-- column-name code -->
@@ -166,7 +176,7 @@ Or enter the latitude and longitude directly:</property>
                                 <property name="can-focus">False</property>
                                 <property name="left-padding">12</property>
                                 <child>
-                                  <object class="GtkEntry">
+                                  <object class="GtkEntry" id="TxLatEntry">
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <signal name="changed" handler="numericChanged" swapped="no"/>
@@ -200,7 +210,7 @@ Or enter the latitude and longitude directly:</property>
                                 <property name="can-focus">False</property>
                                 <property name="left-padding">12</property>
                                 <child>
-                                  <object class="GtkEntry">
+                                  <object class="GtkEntry" id="TxLonEntry">
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <signal name="changed" handler="numericChanged" swapped="no"/>
@@ -252,7 +262,7 @@ Or enter the latitude and longitude directly:</property>
                                 <property name="can-focus">False</property>
                                 <property name="left-padding">12</property>
                                 <child>
-                                  <object class="GtkEntry">
+                                  <object class="GtkEntry" id="RxLatEntry">
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <signal name="changed" handler="numericChanged" swapped="no"/>
@@ -286,7 +296,7 @@ Or enter the latitude and longitude directly:</property>
                                 <property name="can-focus">False</property>
                                 <property name="left-padding">12</property>
                                 <child>
-                                  <object class="GtkEntry">
+                                  <object class="GtkEntry" id="RxLonEntry">
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <signal name="changed" handler="numericChanged" swapped="no"/>
@@ -380,7 +390,10 @@ Or enter the latitude and longitude directly:</property>
                               <object class="GtkEntry" id="TxWattEntry">
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
+                                <property name="text" translatable="yes">50</property>
                                 <property name="placeholder-text" translatable="yes">Watts</property>
+                                <property name="input-purpose">number</property>
+                                <property name="input-hints">GTK_INPUT_HINT_NO_SPELLCHECK | GTK_INPUT_HINT_NO_EMOJI | GTK_INPUT_HINT_NONE</property>
                                 <signal name="changed" handler="numericChanged" swapped="no"/>
                               </object>
                             </child>
@@ -498,12 +511,18 @@ Or enter the latitude and longitude directly:</property>
                             <property name="can-focus">False</property>
                             <property name="left-padding">12</property>
                             <child>
-                              <object class="GtkSpinButton">
+                              <object class="GtkSpinButton" id="TxGainEntry">
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
+                                <property name="input-purpose">number</property>
+                                <property name="input-hints">GTK_INPUT_HINT_NO_SPELLCHECK | GTK_INPUT_HINT_NO_EMOJI | GTK_INPUT_HINT_NONE</property>
+                                <property name="adjustment">adjustment1</property>
                                 <property name="climb-rate">0.01</property>
                                 <property name="digits">2</property>
+                                <property name="numeric">True</property>
+                                <property name="value">2</property>
                                 <signal name="change-value" handler="numericChanged" swapped="no"/>
+                                <signal name="changed" handler="numericChanged" swapped="no"/>
                               </object>
                             </child>
                           </object>
@@ -512,7 +531,7 @@ Or enter the latitude and longitude directly:</property>
                           <object class="GtkLabel">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">Gain:</property>
+                            <property name="label" translatable="yes">Transmit Gain dB:</property>
                           </object>
                         </child>
                       </object>
@@ -666,13 +685,19 @@ Or enter the latitude and longitude directly:</property>
                             <property name="can-focus">False</property>
                             <property name="left-padding">12</property>
                             <child>
-                              <object class="GtkSpinButton">
+                              <object class="GtkSpinButton" id="RxGainEntry">
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
                                 <property name="text" translatable="yes">0.00</property>
+                                <property name="input-purpose">number</property>
+                                <property name="input-hints">GTK_INPUT_HINT_NO_SPELLCHECK | GTK_INPUT_HINT_NO_EMOJI | GTK_INPUT_HINT_NONE</property>
+                                <property name="adjustment">adjustment2</property>
                                 <property name="climb-rate">0.01</property>
                                 <property name="digits">2</property>
+                                <property name="numeric">True</property>
+                                <property name="value">2</property>
                                 <signal name="change-value" handler="numericChanged" swapped="no"/>
+                                <signal name="changed" handler="numericChanged" swapped="no"/>
                               </object>
                             </child>
                           </object>
@@ -681,7 +706,7 @@ Or enter the latitude and longitude directly:</property>
                           <object class="GtkLabel">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">Gain:</property>
+                            <property name="label" translatable="yes">Receive Gain dB:</property>
                           </object>
                         </child>
                       </object>

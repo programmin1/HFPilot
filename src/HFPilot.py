@@ -95,6 +95,7 @@ from threading import Thread
 from gi.repository import OsmGpsMap as osmgpsmap
 from zipfile import ZipFile
 from hfcommon import userFile
+from debounce import debounce #https://stackoverflow.com/questions/61476962
 
 assert osmgpsmap._version == "1.0"
 
@@ -176,6 +177,12 @@ class UI:
 
         self.txComboBox = self.builder.get_object('antennaTxComboBox')
         self.rxComboBox = self.builder.get_object('antennaRxComboBox')
+        self.txGainEntry = self.builder.get_object('TxGainEntry')
+        self.rxGainEntry = self.builder.get_object('RxGainEntry')
+        self.txLatEntry = self.builder.get_object('TxLatEntry')
+        self.txLonEntry = self.builder.get_object('TxLonEntry')
+        self.rxLatEntry = self.builder.get_object('RxLatEntry')
+        self.rxLonEntry = self.builder.get_object('RxLonEntry')
 
         self.trafficComboBox = self.builder.get_object('trafficComboBox')
         self.trafficListStore = self.builder.get_object('trafficListStore')
@@ -259,7 +266,6 @@ class UI:
         self.mapOverlay.add_overlay(top_container)
         self.mapOverlay.set_overlay_pass_through(top_container,True)
         self.mapOverlay.show_all()
-        self.latlon_entry = Gtk.Entry()
 
         #Adding image in the render code causes infinite loop.
         icon_app_path = '/usr/share/icons/hicolor/scalable/apps/repeaterSTART.svg'
@@ -364,6 +370,8 @@ class UI:
             self.osm.image_remove(self.txmark)
         icon = GdkPixbuf.Pixbuf.new_from_file_at_size ("TX.svg", self.iconsize,self.iconsize)
         self.txmark = self.osm.image_add(lat,lon,icon)
+        self.txLatEntry.set_text(str(lat))
+        self.txLonEntry.set_text(str(lon))
         self.runPrediction()
 
     def setRX(self,lat,lon):
@@ -371,6 +379,8 @@ class UI:
             self.osm.image_remove(self.rxmark)
         icon = GdkPixbuf.Pixbuf.new_from_file_at_size ("RX.svg", self.iconsize,self.iconsize)
         self.rxmark = self.osm.image_add(lat,lon,icon)
+        self.rxLatEntry.set_text(str(lat))
+        self.rxLonEntry.set_text(str(lon))
         self.runPrediction()
 
     def switchClicked(self,widget):
@@ -405,7 +415,7 @@ class UI:
                     f = urllib.request.urlopen(req, context=ssl_context)
                     objs = json.loads(f.read().decode('utf-8'))
                     if not objs:
-                        self.latlon_entry.set_text('Invalid what3words.com address.')
+                        pass #self.latlon_entry.set_text('Invalid what3words.com address.')
                     else:
                         finishfunction(objs['coordinates']['lat'], objs['coordinates']['lng'])
                 else:
@@ -526,17 +536,18 @@ class UI:
         self.rtllistener = RTLSDRRun( cmd )
         self.rtllistener.start()
 
+    @debounce(2)
     def runPrediction(self):
         txpower = math.log(float(self.txWattEntry.get_text()))*4.342-30
         values = """PathName "point2point"
 Path.L_tx.lat !!TXLAT!!
 Path.L_tx.lng !!TXLON!!
 TXAntFilePath "!!TXANT!!"
-TXGOS 2.15
+TXGOS !!TXGAIN!!
 Path.L_rx.lat !!RXLAT!!
 Path.L_rx.lng !!RXLON!!
 RXAntFilePath "!!RXANT!!"
-RXGOS 2.15
+RXGOS !!RXGAIN!!
 Path.year 2025
 Path.month  12
 Path.hour 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
@@ -563,7 +574,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         with open(userFile('input.txt'),'w') as outfile:
             tx = self.txmark.get_point().get_degrees()
             rx = self.rxmark.get_point().get_degrees()
-            outfile.write(values.replace('!!TXANT!!',self.txAntenna).replace('!!BW!!',str(self.BW)).replace('!!SNR!!',str(self.SNR)).replace('!!RXANT!!',self.rxAntenna).replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',str(rx.lat)).replace('!!RXLON!!',str(rx.lon)).replace('!!TXLAT!!',str(tx.lat)).replace('!!TXLON!!',str(tx.lon)).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
+            outfile.write(values.replace('!!TXANT!!',self.txAntenna).replace('!!TXGAIN!!',self.txGainEntry.get_text()).replace('!!RXGAIN!!',self.rxGainEntry.get_text()).replace('!!BW!!',str(self.BW)).replace('!!SNR!!',str(self.SNR)).replace('!!RXANT!!',self.rxAntenna).replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',self.rxLatEntry.get_text()).replace('!!RXLON!!',self.rxLonEntry.get_text()).replace('!!TXLAT!!',self.txLatEntry.get_text()).replace('!!TXLON!!',self.txLonEntry.get_text()).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
         if os.name == 'nt':
             hflib_path = os.path.abspath('HFlib')
             original_dir = os.getcwd()
@@ -578,7 +589,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
             ).returncode
             os.chdir(original_dir)
         else:
-            returnval = os.system('HFlib/ITURHFProp HFlib/input.txt HFlib/output.txt')
+            returnval = os.system('HFlib/ITURHFProp '+userFile('input.txt')+' '+userFile('output.txt'))
         if returnval:
             print('fail :() ')
         else:
