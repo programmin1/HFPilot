@@ -150,7 +150,7 @@ class BackgroundDownloadZip(BackgroundDownload):
 class UI:
     def __init__(self):
         #Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
-        self.version = '0.1'
+        self.version = '0.2'
         self.mode = ''
 
         self.builder = Gtk.Builder()
