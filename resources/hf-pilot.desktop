@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Icon=hf-pilot
+Encoding=UTF-8
+Name=HF Pilot
+Comment=HF Pilot Shortwave / Ham radio tool.
+Exec=hf-pilot
+Terminal=false
+Categories=Education;Science;GTK;GNOME;Utility;HamRadio;
+Keywords=Maps;
+DBusActivatable=true
+X-Geoclue-Reason=Allows you to look up nearby amateur radio repeaters.
+X-Purism-FormFactor=Workstation;Mobile;
+StartupNotify=true

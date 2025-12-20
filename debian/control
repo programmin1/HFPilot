@@ -1,0 +1,16 @@
+Source: hf-pilot
+Section: Education
+Priority: optional
+Maintainer: Luke <luke@hearham.live>
+Build-Depends: debhelper (>=9),python3-setuptools,python3-all,python3-setuptools
+Standards-Version: 3.9.6
+Homepage: Hearham.com
+X-Python-Version: >= 3.9
+X-Python3-Version: >= 3.9
+
+Package: hf-pilot
+Architecture: amd64
+Depends: ${python3:Depends}, gir1.2-osmgpsmap-1.0, gir1.2-geoclue-2.0, python3-gi, python3-pil, python3-gi-cairo, xdg-utils
+Suggests: 
+License: GPL-3+
+Description: HF Pilot (Shortwave/HF Amateur Radio Tool)

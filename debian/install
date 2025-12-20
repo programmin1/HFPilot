@@ -1,0 +1,4 @@
+src/* usr/share/HF-Pilot 
+resources/hf-pilot.desktop   usr/share/applications
+resources/hf-pilot /usr/bin
+resources/hf-pilot.svg   usr/share/icons/hicolor/scalable/apps/

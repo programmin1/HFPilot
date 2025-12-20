@@ -57,6 +57,8 @@ import random
 import subprocess
 import json
 import pathlib
+import gettext
+__ = gettext.gettext #TODO translations
 
 localedir = pathlib.Path(__file__).resolve().parent / 'lang'
 #gettext.textdomain('HFPilot')
@@ -124,9 +126,20 @@ class BackgroundDownload(Thread):
         self.finished = False
         self.success = False
     def run(self):
+        python_version = ".".join(map(str, sys.version_info[0:2]))
         try:
             tmpfile = '/tmp/output'+str(int(time.time()))+str(random.random())
-            urllib.request.urlretrieve(self.url, tmpfile, context=ssl_context)
+            req = urllib.request.Request(
+                self.url, 
+                data=None,
+                headers={
+                    'User-Agent': 'Python-urllib/'+python_version
+                }
+            )
+            f = urllib.request.urlopen(req, context=ssl_context)
+            with open(tmpfile,'wb') as outfile:
+                outfile.write(f.read())
+            #urllib.request.urlretrieve(self.url, tmpfile, context=ssl_context)
             shutil.move( tmpfile, self.filename )
             self.finished = True
             self.success = True
@@ -137,22 +150,11 @@ class BackgroundDownload(Thread):
             print("Failed to fetch.")
             self.finished = True
 
-class BackgroundDownloadZip(BackgroundDownload):
-    def run(self):
-        super().run()
-        if os.path.exists(self.filename):
-            with ZipFile(self.filename, 'r') as prozip:
-                prozip.extractall(path=userFile('.hidden'))
-            os.remove(self.filename)
-        else:
-            print('Unable to update')
-
 class UI:
     def __init__(self):
         #Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
-        self.version = '0.2'
+        self.version = '0.3' #program version.
         self.mode = ''
-
         self.builder = Gtk.Builder()
         self.builder.add_from_file('Main.glade')
         self.builder.connect_signals(self)
@@ -183,6 +185,10 @@ class UI:
         self.txLonEntry = self.builder.get_object('TxLonEntry')
         self.rxLatEntry = self.builder.get_object('RxLatEntry')
         self.rxLonEntry = self.builder.get_object('RxLonEntry')
+        self.rxChoiceBtn = self.builder.get_object('RXChoice')
+        self.txChoiceBtn = self.builder.get_object('TXChoice')
+        self.RxEntry = self.builder.get_object('RxEntry')
+        self.TxEntry = self.builder.get_object('TxEntry')
 
         self.trafficComboBox = self.builder.get_object('trafficComboBox')
         self.trafficListStore = self.builder.get_object('trafficListStore')
@@ -279,9 +285,41 @@ class UI:
         self.repouri_entry = Gtk.Entry()
         self.image_format_entry = Gtk.Entry()
         self.image_format_entry.set_text(self.osm.props.image_format)
-        #GLib.timeout_add(500, self.print_tiles)
-        #GLib.timeout_add(1000, self.downloadBackground)
         self.bgdl = None
+        self.lastlat=0
+        self.lastlon=0
+        GLib.timeout_add(1000, self.downloadBackground)
+        GLib.timeout_add(3000, self.updateMessage)
+    
+    def downloadBackground(self):
+        if os.name == 'nt':
+            oscall='windows'
+        else:
+            oscall='linux'
+        self.checkUpdate = BackgroundDownload('https://hearham.com/api/hfupdatecheck/'+oscall, userFile('update.response'))
+        self.checkUpdate.start()
+
+    def updateMessage(self):
+        toupdatefile = userFile('update.response')
+        if os.path.exists(toupdatefile):
+            Gdk.threads_enter()
+            try:
+                updateinfo = json.load(open(toupdatefile))
+                if str(updateinfo['version']) != self.version:
+                    dlg = Gtk.MessageDialog(self.dialog,
+                        0,Gtk.MessageType.QUESTION,
+                        Gtk.ButtonsType.YES_NO,
+                        __('There is an update available. Do you wish to install it?')+'\n'+
+                        updateinfo['message'])
+                    response = dlg.run()
+                    if response == Gtk.ResponseType.YES:
+                        self.openLink(updateinfo['link'])
+                    dlg.destroy()
+                        
+            except Exception as e:
+                print(e)
+                print('Error update check')
+            Gdk.threads_leave()
         
     def antennas(self):
         """
@@ -306,11 +344,13 @@ class UI:
         return values
 
     def credit_mapbox(self, obj, obj2):
-        os.system('xdg-open https://www.mapbox.com/about/maps/')
+        self.openLink('https://www.mapbox.com/about/maps/')
     def credit_osm(self, obj, obj2):
-        os.system('xdg-open http://www.openstreetmap.org/about/')
+        self.openLink('http://www.openstreetmap.org/about/')
     def improvement_link(self, obj, obj2):
-        os.system('xdg-open https://www.mapbox.com/map-feedback/')
+        self.openLink('https://www.mapbox.com/map-feedback/')
+    def openLink(self,url):
+        subprocess.Popen(['xdg-open',url])
 
     def noiseComboChanged(self, widget, data=None):
         model = widget.get_model()
@@ -354,6 +394,12 @@ class UI:
         except ValueError:
             COLOR_INVALID = Color(50000, 0, 0)
             widget.modify_bg(Gtk.StateFlags.NORMAL, COLOR_INVALID)
+        if Gtk.Buildable.get_name(widget)=='RxLatEntry' or Gtk.Buildable.get_name(widget)=='RxLatEntry':
+            loc = latLongToLocator(float(self.rxLatEntry.get_text()), float(self.rxLonEntry.get_text()))
+            self.RxEntry.set_text(loc)
+        if Gtk.Buildable.get_name(widget)=='TxLatEntry' or Gtk.Buildable.get_name(widget)=='TxLatEntry':
+            loc = latLongToLocator(float(self.txLatEntry.get_text()), float(self.txLonEntry.get_text()))
+            self.TxEntry.set_text(loc)
 
 
     def linkLabel(self, lbltext, connectfunction):
@@ -459,12 +505,27 @@ class UI:
         
     def back_clicked(self, button):
         self.osm.set_center_and_zoom(self.lastLat, self.lastLon, 12)
+    
+    def TXMapChoice(self, widget):
+        if(widget.get_active()):
+            self.rxChoiceBtn.set_active(False)
+
+    def RXMapChoice(self, widget):
+        if(widget.get_active()):
+            self.txChoiceBtn.set_active(False)
+
 
     def TXActivate(self, widget):
-        self.search_call(widget.get_text(), self.setTX)
+        #Thread frees up UI and does not freeze window.
+        Thread(target=self.search_call, args=[widget.get_text(), self.setTX]).start()
+        #Still can cause long wait and waiting message...
+        #GLib.timeout_add(1, self.search_call, widget.get_text(), self.setTX)
+        #self.search_call(widget.get_text(), self.setTX)
 
     def RXActivate(self, widget):
-        self.search_call(widget.get_text(), self.setRX)
+        Thread(target=self.search_call, args=[widget.get_text(), self.setRX]).start()
+        #GLib.timeout_add(1, self.search_call, widget.get_text(), self.setRX)
+        #self.search_call(widget.get_text(), self.setRX)
         
     def searchToggle_clicked(self,button):
         if self.mode == 'search':
@@ -489,7 +550,6 @@ class UI:
     def refreshListing(self):
         # cursor lat,lon = self.osm.get_event_location(event).get_degrees()
         lat, lon = self.osm.props.latitude, self.osm.props.longitude
-        
     
     def playpause(self, btn):
         if btn.selFrequency != self.playingfreq:
@@ -509,23 +569,37 @@ class UI:
                       icon_size=self.PLAYSIZE))
 
     def on_button_release(self, osm, event):
-        pass # Not the right lat/lon props here.
+        state = event.get_state()
+        lat,lon = self.osm.get_event_location(event).get_degrees()
+        #print('released %s,%s' % (lat,lon))
+        left    = event.button == 1
+        middle  = event.button == 2 or (event.button == 1 and state & Gdk.ModifierType.SHIFT_MASK)
+        right   = event.button == 3 or (event.button == 1 and state & Gdk.ModifierType.CONTROL_MASK)
+        changed = False;
+        if lat==self.lastlat and lon == self.lastlon:
+            #Down and up, click.
+            if left and self.txChoiceBtn.get_active():
+                self.setTX(lat,lon)
+                changed = True
+            elif left and self.rxChoiceBtn.get_active():
+                self.setRX(lat,lon)
+                changed = True
+            if changed:
+                self.runPrediction()
         
     def on_button_press(self, osm, event):
         state = event.get_state()
         lat,lon = self.osm.get_event_location(event).get_degrees()
-        print('clicked %s,%s' % (lat,lon))
-        
-
         left    = event.button == 1 and state == 0
         middle  = event.button == 2 or (event.button == 1 and state & Gdk.ModifierType.SHIFT_MASK)
         right   = event.button == 3 or (event.button == 1 and state & Gdk.ModifierType.CONTROL_MASK)
+        if left:
+            self.lastlat = lat
+            self.lastlon = lon
 
         #work around binding bug with invalid variable name
         GDK_2BUTTON_PRESS = getattr(Gdk.EventType, "2BUTTON_PRESS")
         GDK_3BUTTON_PRESS = getattr(Gdk.EventType, "3BUTTON_PRESS")
-
-
 
     def playRTLSDR(self, mhz):
         if self.rtllistener:
@@ -538,6 +612,8 @@ class UI:
 
     @debounce(2)
     def runPrediction(self):
+        year = datetime.date.today().strftime('%Y')
+        month = datetime.date.today().strftime('%m')
         txpower = math.log(float(self.txWattEntry.get_text()))*4.342-30
         values = """PathName "point2point"
 Path.L_tx.lat !!TXLAT!!
@@ -548,8 +624,8 @@ Path.L_rx.lat !!RXLAT!!
 Path.L_rx.lng !!RXLON!!
 RXAntFilePath "!!RXANT!!"
 RXGOS !!RXGAIN!!
-Path.year 2025
-Path.month  12
+Path.year !!YEAR!!
+Path.month  !!MONTH!!
 Path.hour 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
 Path.SSN 110
 Path.frequency 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30
@@ -574,7 +650,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         with open(userFile('input.txt'),'w') as outfile:
             tx = self.txmark.get_point().get_degrees()
             rx = self.rxmark.get_point().get_degrees()
-            outfile.write(values.replace('!!TXANT!!',self.txAntenna).replace('!!TXGAIN!!',self.txGainEntry.get_text()).replace('!!RXGAIN!!',self.rxGainEntry.get_text()).replace('!!BW!!',str(self.BW)).replace('!!SNR!!',str(self.SNR)).replace('!!RXANT!!',self.rxAntenna).replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',self.rxLatEntry.get_text()).replace('!!RXLON!!',self.rxLonEntry.get_text()).replace('!!TXLAT!!',self.txLatEntry.get_text()).replace('!!TXLON!!',self.txLonEntry.get_text()).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
+            outfile.write(values.replace('!!YEAR!!',year).replace('!!MONTH!!',month).replace('!!TXANT!!',self.txAntenna).replace('!!TXGAIN!!',self.txGainEntry.get_text()).replace('!!RXGAIN!!',self.rxGainEntry.get_text()).replace('!!BW!!',str(self.BW)).replace('!!SNR!!',str(self.SNR)).replace('!!RXANT!!',self.rxAntenna).replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',self.rxLatEntry.get_text()).replace('!!RXLON!!',self.rxLonEntry.get_text()).replace('!!TXLAT!!',self.txLatEntry.get_text()).replace('!!TXLON!!',self.txLonEntry.get_text()).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
         if os.name == 'nt':
             hflib_path = os.path.abspath('HFlib')
             original_dir = os.getcwd()
