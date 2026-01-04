@@ -350,7 +350,11 @@ class UI:
     def improvement_link(self, obj, obj2):
         self.openLink('https://www.mapbox.com/map-feedback/')
     def openLink(self,url):
-        subprocess.Popen(['xdg-open',url])
+        if os.name == 'nt':
+            import webbrowser
+            webbrowser.open(url)
+        else:
+            subprocess.Popen(['xdg-open',url])
 
     def noiseComboChanged(self, widget, data=None):
         model = widget.get_model()
