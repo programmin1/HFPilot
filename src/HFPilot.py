@@ -153,7 +153,7 @@ class BackgroundDownload(Thread):
 class UI:
     def __init__(self):
         #Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
-        self.version = '0.3' #program version.
+        self.version = '0.4' #program version.
         self.mode = ''
         self.builder = Gtk.Builder()
         self.builder.add_from_file('Main.glade')
@@ -176,6 +176,13 @@ class UI:
             ['QUITE', 'Quiet'],
             ['NOISY', 'Noisy RF']]:
             self.noiseListStore.append(item)
+
+        self.pathComboBox = self.builder.get_object('pathComboBox')
+        self.pathListStore = self.builder.get_object('pathListStore')
+        for item in [
+            ['SHORTPATH', 'Short path'],
+            ['LONGPATH', 'Long path']]:
+            self.pathListStore.append(item)
 
         self.txComboBox = self.builder.get_object('antennaTxComboBox')
         self.rxComboBox = self.builder.get_object('antennaRxComboBox')
@@ -356,6 +363,14 @@ class UI:
         else:
             subprocess.Popen(['xdg-open',url])
 
+    def pathComboChanged(self, widget, data=None):
+        model = widget.get_model()
+        active = widget.get_active()
+        if active >= 0:
+            code = model[active][0]
+            self.path = code
+            self.runPrediction()
+
     def noiseComboChanged(self, widget, data=None):
         model = widget.get_model()
         active = widget.get_active()
@@ -408,7 +423,7 @@ class UI:
 
     def linkLabel(self, lbltext, connectfunction):
         """ Like a label, clickable. https://stackoverflow.com/questions/5822191/ """
-        lbl = Gtk.Label(lbltext, xalign=1);
+        lbl = Gtk.Label(lbltext, xalign=1)
         lbl.set_has_window(True)
         lbl.set_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         lbl.override_color(Gtk.StateFlags.NORMAL,  Gdk.RGBA(0.0, 0.0, 0.8, 1.0))
@@ -616,6 +631,7 @@ class UI:
 
     @debounce(2)
     def runPrediction(self):
+        #Values as documented at https://github.com/ITU-R-Study-Group-3/ITU-R-HF
         year = datetime.date.today().strftime('%Y')
         month = datetime.date.today().strftime('%m')
         txpower = math.log(float(self.txWattEntry.get_text()))*4.342-30
@@ -639,7 +655,7 @@ Path.SNRr !!SNR!!
 Path.SNRXXp 90
 Path.ManMadeNoise "!!NOISE!!"
 Path.Modulation "ANALOG"
-Path.SorL "SHORTPATH"
+Path.SorL "!!PATH!!"
 RptFileFormat "RPT_OPMUF | RPT_BCR | RPT_PR | RPT_SNR | RPT_LONG | RPT_ELE"
 LL.lat !!RXLAT!!
 LL.lng !!RXLON!!
@@ -654,7 +670,12 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         with open(userFile('input.txt'),'w') as outfile:
             tx = self.txmark.get_point().get_degrees()
             rx = self.rxmark.get_point().get_degrees()
-            outfile.write(values.replace('!!YEAR!!',year).replace('!!MONTH!!',month).replace('!!TXANT!!',self.txAntenna).replace('!!TXGAIN!!',self.txGainEntry.get_text()).replace('!!RXGAIN!!',self.rxGainEntry.get_text()).replace('!!BW!!',str(self.BW)).replace('!!SNR!!',str(self.SNR)).replace('!!RXANT!!',self.rxAntenna).replace('!!TXPOWER!!',str(txpower)).replace('!!RXLAT!!',self.rxLatEntry.get_text()).replace('!!RXLON!!',self.rxLonEntry.get_text()).replace('!!TXLAT!!',self.txLatEntry.get_text()).replace('!!TXLON!!',self.txLonEntry.get_text()).replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
+            outfile.write(values.replace('!!YEAR!!',year).replace('!!MONTH!!',month)
+                .replace('!!TXANT!!',self.txAntenna).replace('!!TXGAIN!!',self.txGainEntry.get_text()).replace('!!RXGAIN!!',self.rxGainEntry.get_text()).replace('!!PATH!!', self.path)
+                .replace('!!BW!!',str(self.BW)).replace('!!SNR!!',str(self.SNR)).replace('!!RXANT!!',self.rxAntenna).replace('!!TXPOWER!!',str(txpower))
+                .replace('!!RXLAT!!',self.rxLatEntry.get_text()).replace('!!RXLON!!',self.rxLonEntry.get_text())
+                .replace('!!TXLAT!!',self.txLatEntry.get_text()).replace('!!TXLON!!',self.txLonEntry.get_text())
+                .replace('!!CWD!!',os.getcwd()).replace('!!NOISE!!',self.noiseValue) )
         if os.name == 'nt':
             hflib_path = os.path.abspath('HFlib')
             original_dir = os.getcwd()

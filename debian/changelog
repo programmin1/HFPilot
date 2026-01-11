@@ -1,3 +1,9 @@
+hf-pilot (0.4) unstable; urgency=medium
+
+  * Fix long and short dropdown.
+
+ -- Luke <luke@hearham.live>  Sun, 11 Jan 2026 15:15:00 -0800
+
 hf-pilot (0.3) unstable; urgency=medium
 
   * Beta for linux.
