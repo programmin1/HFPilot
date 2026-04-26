@@ -406,6 +406,9 @@ class UI:
     
 
     def numericChanged(self,widget,data=None):
+        if not self.rxmark or not self.txmark:
+            print("RX and TX must be chosen first.")
+            return
         try:
             float(widget.get_text()) # or show error red..
             widget.modify_bg(Gtk.StateFlags.NORMAL, None)
@@ -631,6 +634,9 @@ class UI:
 
     @debounce(2)
     def runPrediction(self):
+        if not self.rxmark or not self.txmark:
+            print("RX and TX must be chosen first.")
+            return
         #Values as documented at https://github.com/ITU-R-Study-Group-3/ITU-R-HF
         year = datetime.date.today().strftime('%Y')
         month = datetime.date.today().strftime('%m')
