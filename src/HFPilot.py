@@ -238,6 +238,7 @@ class UI:
 
         self.rxmark = False #osm marker
         self.txmark = False
+        self.path = "SHORTPATH" #default
         self.BW=3000 #default bandwidth input
         self.SNR=17  #default Signalnoiseratio
         self.iconsize = 64
@@ -696,9 +697,24 @@ DataFilePath "!!CWD!!/HFlib/Data/"
             ).returncode
             os.chdir(original_dir)
         else:
-            returnval = os.system('HFlib/ITURHFProp '+userFile('input.txt')+' '+userFile('output.txt'))
+            env = os.environ.copy()
+            original_dir = os.getcwd()
+            hflib_path = os.path.abspath('HFlib')
+            #The upper directory is not included for some reason - include it:
+            env['LD_LIBRARY_PATH'] =  os.path.dirname(os.path.dirname(os.path.abspath(__file__))) +"/HFlib:" + env.get('LD_LIBRARY_PATH', '')
+            result = subprocess.run(
+                ['HFlib/ITURHFProp', userFile('input.txt'), userFile('output.txt')],
+                cwd=os.path.dirname(os.path.abspath(__file__)),
+                env=env,
+                capture_output=True,
+                text=True
+            )
+            returnval = result.returncode
         if returnval:
-            print('fail :() ')
+            print('fail code ' + str(returnval))            #os.chdir(hflib_path)
+            print('STDOUT:', result.stdout)
+            print('STDERR:', result.stderr)
+            print('fail code '+str(returnval))
         else:
             #Load the data...
             ignoreline = True
