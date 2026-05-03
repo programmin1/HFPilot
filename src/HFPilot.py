@@ -138,7 +138,7 @@ class BackgroundDownload(Thread):
 class UI:
     def __init__(self):
         #Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
-        self.version = '0.4' #program version.
+        self.version = '0.5' #program version.
         self.mode = ''
         self.builder = Gtk.Builder()
         self.builder.add_from_file('Main.glade')
@@ -712,7 +712,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
             original_dir = os.getcwd()
             hflib_path = os.path.abspath('HFlib')
             #The upper directory is not included for some reason - include it:
-            env['LD_LIBRARY_PATH'] =  os.path.dirname(os.path.dirname(os.path.abspath(__file__))) +"/HFlib:" + env.get('LD_LIBRARY_PATH', '')
+            env['LD_LIBRARY_PATH'] =  os.path.dirname(os.path.abspath(__file__)) +"/HFlib:" + env.get('LD_LIBRARY_PATH', '')
             result = subprocess.run(
                 ['HFlib/ITURHFProp', userFile('input.txt'), userFile('output.txt')],
                 cwd=os.path.dirname(os.path.abspath(__file__)),
