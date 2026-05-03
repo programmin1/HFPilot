@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """
 HFPilot
-(C) 2025 Luke Bryan.
+(C) 2025-2026 Luke Bryan.
 OSMGPSMap examples are (C) Hadley Rich 2008 <hads@nice.net.nz>
 
 This is free software: you can redistribute it and/or modify it
@@ -16,6 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 """
+import configparser
 import os
 import sys
 import ssl
@@ -101,22 +102,6 @@ from debounce import debounce #https://stackoverflow.com/questions/61476962
 
 assert osmgpsmap._version == "1.0"
 
-class RTLSDRRun(Thread):
-    def __init__(self, cmd):
-        Thread.__init__(self)
-        self.cmd = cmd
-        
-    def run(self):
-        #TODO test commands more
-        #cmd = 'rtl_fm -M fm -f '+self.freq+'M -l 202 | play -r 24k -t raw -e s -b 16 -c 1 -V1 -'
-        cmds = self.cmd.split('|')
-        self.proc = subprocess.Popen(cmds[0].split(),
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT)
-        subprocess.check_output(cmds[1].split(),stdin=self.proc.stdout)
-        for line in iter(self.proc.stdout.readline, b''):
-            line = line.decode('utf-8')
-
 class BackgroundDownload(Thread):
     def __init__(self, url, filename):
         #Thread init, as this is a thread:
@@ -164,6 +149,31 @@ class UI:
 
         self.txWattEntry = self.builder.get_object('TxWattEntry')
 
+        self.config = configparser.ConfigParser()
+        if os.path.exists(userFile('settings.ini')):
+            self.config.read(userFile('settings.ini'))
+        else: #defaults:
+            self.config['Diagnostics'] = {}
+        if not 'SendReport' in self.config['Diagnostics']:
+            dlg = Gtk.MessageDialog(self.dialog, 
+                0,Gtk.MessageType.INFO,
+                Gtk.ButtonsType.YES_NO,
+                'Do you want to send exception reports for HFPilot?\nChoose yes to improve reliability and notify administrators of any errors!')
+            response = dlg.run()
+            if response == Gtk.ResponseType.YES:
+                self.config['Diagnostics'] = {
+                    'SendReport' : True
+                }
+            else:
+                self.config['Diagnostics'] = {
+                    'SendReport' : False
+                }
+            with open(userFile('settings.ini'),'w') as outfile:
+                self.config.write(outfile)
+            dlg.destroy()
+        if self.config['Diagnostics']['SendReport'] and 'False' != self.config['Diagnostics']['SendReport']:
+            self.initSentry()
+        
         self.txAntenna = 'ISOTROPIC'
         self.rxAntenna = 'ISOTROPIC'
         self.noiseValue = 'RESIDENTIAL'
@@ -298,6 +308,16 @@ class UI:
         self.lastlon=0
         GLib.timeout_add(1000, self.downloadBackground)
         GLib.timeout_add(3000, self.updateMessage)
+
+    def initSentry(self):
+        import sentry_sdk
+        sentry_sdk.init(
+            dsn="https://7d5085f5e4692520c208687631818fc9@o92400.ingest.us.sentry.io/4511323027013632",
+            # Add data like request headers and IP for users,
+            # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+            send_default_pii=True,
+        )
+        print('Exceptions will be reported.')
     
     def downloadBackground(self):
         if os.name == 'nt':
@@ -623,15 +643,6 @@ class UI:
         #work around binding bug with invalid variable name
         GDK_2BUTTON_PRESS = getattr(Gdk.EventType, "2BUTTON_PRESS")
         GDK_3BUTTON_PRESS = getattr(Gdk.EventType, "3BUTTON_PRESS")
-
-    def playRTLSDR(self, mhz):
-        if self.rtllistener:
-            self.rtllistener.proc.kill()
-        # -l 450 is higher squelch.
-        cmd = 'rtl_fm -M fm -f '+mhz+'M -l 450 | play -r 24k -t raw -e s -b 16 -c 1 -V1 -'
-        print(cmd)
-        self.rtllistener = RTLSDRRun( cmd )
-        self.rtllistener.start()
 
     @debounce(2)
     def runPrediction(self):
