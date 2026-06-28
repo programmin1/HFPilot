@@ -20,6 +20,8 @@ import configparser
 import os
 import sys
 import ssl
+#necessary for Ubuntu/GNOME desktop file icon match:
+sys.argv[0] = 'hf-pilot'
 
 if getattr(sys, 'frozen', False):
     # Running as PyInstaller exe
@@ -258,7 +260,7 @@ class UI:
                 show_zoom=True,
                 show_crosshair=False)
         
-        icon_app_path = '/usr/share/icons/hicolor/scalable/apps/HFPilot.svg'
+        icon_app_path = '/usr/share/icons/hicolor/scalable/apps/hf-pilot.svg'
         if os.path.exists(icon_app_path):
             pixbuf = GdkPixbuf.Pixbuf.new_from_file(icon_app_path)
             surface=Gdk.cairo_surface_create_from_pixbuf(pixbuf, 0, None)
@@ -438,12 +440,17 @@ class UI:
             COLOR_INVALID = Color(50000, 0, 0)
             widget.modify_bg(Gtk.StateFlags.NORMAL, COLOR_INVALID)
         if Gtk.Buildable.get_name(widget)=='RxLatEntry' or Gtk.Buildable.get_name(widget)=='RxLatEntry':
-            loc = latLongToLocator(float(self.rxLatEntry.get_text()), float(self.rxLonEntry.get_text()))
-            self.RxEntry.set_text(loc)
+            try:
+                loc = latLongToLocator(float(self.rxLatEntry.get_text()), float(self.rxLonEntry.get_text()))
+                self.RxEntry.set_text(loc)
+            except ValueError:
+                print('Invalid RX location')
         if Gtk.Buildable.get_name(widget)=='TxLatEntry' or Gtk.Buildable.get_name(widget)=='TxLatEntry':
-            loc = latLongToLocator(float(self.txLatEntry.get_text()), float(self.txLonEntry.get_text()))
-            self.TxEntry.set_text(loc)
-
+            try:
+                loc = latLongToLocator(float(self.txLatEntry.get_text()), float(self.txLonEntry.get_text()))
+                self.TxEntry.set_text(loc)
+            except ValueError:
+                print('Invalid TX location')
 
     def linkLabel(self, lbltext, connectfunction):
         """ Like a label, clickable. https://stackoverflow.com/questions/5822191/ """
@@ -726,6 +733,13 @@ DataFilePath "!!CWD!!/HFlib/Data/"
             print('STDOUT:', result.stdout)
             print('STDERR:', result.stderr)
             print('fail code '+str(returnval))
+            msg = Gtk.MessageDialog(self.dialog,
+              Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+              Gtk.MessageType.ERROR,
+              Gtk.ButtonsType.OK,
+              'Error code '+str(returnval)+', please try calculation again with valid values for Gain db or other parameters.')
+            msg.run()
+            msg.destroy()
         else:
             #Load the data...
             ignoreline = True
@@ -766,7 +780,13 @@ DataFilePath "!!CWD!!/HFlib/Data/"
                 #print(self.BCRs)
                 self.create_colored_grid(self.BCRs, 30, userFile('grid_output.png'))
                 self.imageShow.set_from_file(userFile('grid_output.png'))
-            
+
+    def get_utc_time(self):
+        """
+        Returns current time in UTC formatted as HH:MM
+        """
+        utc_time = datetime.datetime.utcnow()
+        return utc_time.strftime("%H:%M")
 
     def create_colored_grid(self, grid_data, cell_size=100, output_file="grid_output.png"):
         """
@@ -797,7 +817,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
                 font = ImageFont.truetype("arial.ttf", cell_size // 3)
             except:
                 font = ImageFont.load_default()
-        draw.text((10,1), 'Propagation HF Estimate', fill='black', font=font)
+        draw.text((10,1), 'Propagation HF Estimate Calculated at '+self.get_utc_time()+' UTC.', fill='black', font=font)
         draw.text((20,16), 'Time UTC →', fill='black', font=font)
         draw.text((2,165), "M\nH\nZ", fill='black', font=font)
         for i in range(29): #freq
