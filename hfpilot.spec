@@ -13,7 +13,7 @@ binaries = [
     ('C:/msys64/mingw64/bin/libintl-8.dll', '.'),
     ('C:/msys64/mingw64/bin/libproxy-1.dll', '.'),
     ('C:/msys64/mingw64/bin/libgio-2.0-0.dll', '.'),
-    ('C:/msys64/mingw64/bin/libpython3.12.dll', '.'),
+    ('C:/msys64/mingw64/bin/libpython3.14.dll', '.'),
 ]
 hiddenimports = []
 datas = [

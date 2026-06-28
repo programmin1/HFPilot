@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 """
 import configparser
+import tempfile #windows too
 import os
 import sys
 import ssl
@@ -115,7 +116,7 @@ class BackgroundDownload(Thread):
     def run(self):
         python_version = ".".join(map(str, sys.version_info[0:2]))
         try:
-            tmpfile = '/tmp/output'+str(int(time.time()))+str(random.random())
+            tmpfile = tempfile.gettempdir()+'/output'+str(int(time.time()))+str(random.random())
             req = urllib.request.Request(
                 self.url, 
                 data=None,
@@ -246,7 +247,6 @@ class UI:
                 )
         #Now map-source required or it gets some mysterious null pointers and render issue:
         self.osm.set_property("map-source", osmgpsmap.MapSource_t.LAST)
-        self.osm.set_property("repo-uri", privatetilesapi)
 
         self.rxmark = False #osm marker
         self.txmark = False

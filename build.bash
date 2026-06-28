@@ -1,6 +1,6 @@
 # build deploy directory:
 PATH=/mingw64/bin:$PATH
-/mingw64/bin/pyinstaller ./hfpilot.spec
+/mingw64/bin/pyinstaller --noconfirm ./hfpilot.spec
 echo "Cleaning up."
 rm -rf dist/hfpilot/share/locale
 rm -rf dist/hfpilot/share/icons/hicolor
@@ -23,7 +23,7 @@ rm -rf dist/hfpilot/share/icons/Adwaita/16x16/emblems
 rm -rf dist/hfpilot/share/icons/Adwaita/16x16/emotes
 #not sure why these are here...
 rm dist/hfpilot/libaom.dll
-rm dist/hfpilot/libSvtAv1Enc-3.dll
+rm dist/hfpilot/libSvtAv1Enc*.dll
 rm dist/hfpilot/librav1e.dll
 
 

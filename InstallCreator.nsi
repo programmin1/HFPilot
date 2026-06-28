@@ -12,7 +12,7 @@
 !define DESCRIPTION "HFPilot, Shortwave and Ham radio propagation"
 # These three must be integers
 !define VERSIONMAJOR 0
-!define VERSIONMINOR 4
+!define VERSIONMINOR 6
 !define VERSIONBUILD 0
 # These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
 # It is possible to use "mailto:" links in here to open the email client
@@ -24,7 +24,7 @@
  
 RequestExecutionLevel admin ;Require admin rights on NT6+ (When UAC is turned on)
  
-InstallDir "$PROGRAMFILES\${APPNAME}"
+InstallDir "$PROGRAMFILES64\${APPNAME}"
  
 # rtf or txt file - remember if it is txt, it must be in the DOS text format (\r\n)
 LicenseData "license.rtf"
