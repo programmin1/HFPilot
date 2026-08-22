@@ -171,8 +171,7 @@ class UI:
                 self.config['Diagnostics'] = {
                     'SendReport' : False
                 }
-            with open(userFile('settings.ini'),'w') as outfile:
-                self.config.write(outfile)
+            self.saveSettings()
             dlg.destroy()
         if self.config['Diagnostics']['SendReport'] and 'False' != self.config['Diagnostics']['SendReport']:
             self.initSentry()
@@ -238,15 +237,17 @@ class UI:
             repo_uri=privatetilesapi,
             image_format='jpg',
         )
-        if os.path.exists(userFile('lastPosition.json')):
-            with open(userFile('lastPosition.json')) as lastone:
-                lastposition = json.loads(lastone.read())
-                self.osm.set_center_and_zoom(lastposition['lat'],
-                    lastposition['lon'],
-                    lastposition['zoom']
-                )
+        self.renderedLat = float(self.config['Locations']['centerLat'])
+        self.renderedLon = float(self.config['Locations']['centerLon'])
+        self.osm.set_center_and_zoom(self.renderedLat,
+            self.renderedLon,
+            2 #zoomed out, big picture
+        )
         #Now map-source required or it gets some mysterious null pointers and render issue:
-        self.osm.set_property("map-source", osmgpsmap.MapSource_t.LAST)
+        try:
+            self.osm.set_property("map-source", osmgpsmap.MapSource_t.LAST)
+        except:
+            pass
 
         self.rxmark = False #osm marker
         self.txmark = False
@@ -267,7 +268,7 @@ class UI:
         self.osm.layer_add(osd)
         self.osm.connect('button_press_event', self.on_button_press)
         self.osm.connect('button_release_event', self.on_button_release)
-        #self.osm.connect('changed', self.on_map_change)
+        self.osm.connect('changed', self.on_map_change)
 
         #connect keyboard shortcuts
         self.osm.set_keyboard_shortcut(osmgpsmap.MapKey_t.FULLSCREEN, Gdk.keyval_from_name("F11"))
@@ -275,6 +276,18 @@ class UI:
         self.osm.set_keyboard_shortcut(osmgpsmap.MapKey_t.DOWN, Gdk.keyval_from_name("Down"))
         self.osm.set_keyboard_shortcut(osmgpsmap.MapKey_t.LEFT, Gdk.keyval_from_name("Left"))
         self.osm.set_keyboard_shortcut(osmgpsmap.MapKey_t.RIGHT, Gdk.keyval_from_name("Right"))
+
+        #Default locations and configs:
+        if not 'Locations' in self.config:
+            #Initialize
+            self.config['Locations'] = {
+                'centerLat' : 40.5,
+                'centerLon' : -101.1
+            }
+        else:
+            if( 'txlat' in self.config['Locations'] and 'rxlon' in  self.config['Locations']):
+                self.setTX(float(self.config['Locations']['txlat']), float(self.config['Locations']['txlon']))
+                self.setRX(float(self.config['Locations']['rxlat']), float(self.config['Locations']['rxlon']))
 
         self.osm.show()
 
@@ -328,6 +341,10 @@ class UI:
             oscall='linux'
         self.checkUpdate = BackgroundDownload('https://hearham.com/api/hfupdatecheck/'+oscall, userFile('update.response'))
         self.checkUpdate.start()
+
+    def on_map_change(self, event):
+        self.renderedLat = self.osm.props.latitude
+        self.renderedLon = self.osm.props.longitude
 
     def updateMessage(self):
         toupdatefile = userFile('update.response')
@@ -479,8 +496,32 @@ class UI:
         self.rxLonEntry.set_text(str(lon))
         self.runPrediction()
 
+    def locClear(self,widget):
+        try:
+            del self.config['Locations']['txlat']
+            del self.config['Locations']['rxlat']
+            del self.config['Locations']['txlon']
+            del self.config['Locations']['rxlon']
+        except KeyError:
+            pass #ignore deleted
+        self.saveSettings()
+
+    def locSave(self, widget):
+        self.config['Locations']['txlat'] = self.txLatEntry.get_text()
+        self.config['Locations']['txlon'] = self.txLonEntry.get_text()
+        self.config['Locations']['rxlat'] = self.rxLatEntry.get_text()
+        self.config['Locations']['rxlon'] = self.rxLonEntry.get_text()
+        self.saveSettings()
+
+
     def switchClicked(self,widget):
-        print(widget)
+        #Switch tx/rx!
+        txlat = self.rxLatEntry.get_text()
+        txlon = self.rxLonEntry.get_text()
+        rxlat = self.txLatEntry.get_text()
+        rxlon = self.txLonEntry.get_text()
+        self.setTX(float(txlat), float(txlon))
+        self.setRX(float(rxlat), float(rxlon))
     
     def search_call(self, srctext, finishfunction):
         try:
@@ -861,17 +902,15 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         img.save(output_file)
         return img
 
+    def saveSettings(self):
+        with open(userFile('settings.ini'),'w') as outfile:
+            self.config.write(outfile)
     
     def cleanup(self, obj):
-        # stateObj = {
-        #     'lat': self.renderedLat, 
-        #     'lon': self.renderedLon,
-        #     'zoom': self.osm.props.zoom
-        # }
-        # with open(userFile('lastPosition.json'), 'w') as outfile:
-        #     outfile.write(json.dumps(stateObj))
-        # if self.rtllistener:
-        #     self.rtllistener.proc.kill()
+        self.config['Locations']['centerLat'] = str(self.renderedLat)
+        self.config['Locations']['centerLon'] = str(self.renderedLon)
+        #TODO save the rest.
+        self.saveSettings()
         Gtk.main_quit()
     
 
