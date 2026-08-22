@@ -1,3 +1,10 @@
+
+hf-pilot (0.6) beta; urgency=high
+  * Show error dialog as necessary.
+  * Show UTC of calculation.
+
+ -- Luke <luke@hearham.live>  Sat, 27 Jun 2026 17:20:00 -0800
+
 hf-pilot (0.5) beta; urgency=high
   * Fix for newer Ubuntu, Linux.
   * Introduce optional Sentry error reporting.
