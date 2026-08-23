@@ -1,3 +1,8 @@
+hf-pilot (0.7) beta; urgency=high
+  * Fix for loading on latest Ubuntu.
+  * Saving of the values and optionally save your rx/tx points.
+
+ -- Luke <luke@hearham.live>  Sat, 22 Aug 2026 18:20:00 -0800
 
 hf-pilot (0.6) beta; urgency=high
   * Show error dialog as necessary.

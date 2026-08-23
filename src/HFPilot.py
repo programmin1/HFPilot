@@ -141,7 +141,7 @@ class BackgroundDownload(Thread):
 class UI:
     def __init__(self):
         #Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
-        self.version = '0.6' #program version.
+        self.version = '0.7' #program version.
         self.mode = ''
         self.builder = Gtk.Builder()
         self.builder.add_from_file('Main.glade')
@@ -971,7 +971,6 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         self.config['RXTX']['txgain'] = self.txGainEntry.get_text()
         self.config['RXTX']['rxgain'] = self.rxGainEntry.get_text()
         self.config['RXTX']['noise'] = self.noiseValue
-        self.config['RXTX']['txmode'] = self.mode
         self.config['RXTX']['txpower'] = self.txWattEntry.get_text()
         self.config['RXTX']['txant'] = self.txAntenna
         self.config['RXTX']['rxant'] = self.rxAntenna
