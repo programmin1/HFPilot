@@ -211,7 +211,7 @@ class UI:
 
         self.trafficComboBox = self.builder.get_object('trafficComboBox')
         self.trafficListStore = self.builder.get_object('trafficListStore')
-        for item in [
+        for item in [ #BW,SNR values:
             ['500,0', 'CW morse'],
             ['50,-3','FT8'],
             ['3000,6','SSB, usable'],
@@ -237,12 +237,7 @@ class UI:
             repo_uri=privatetilesapi,
             image_format='jpg',
         )
-        self.renderedLat = float(self.config['Locations']['centerLat'])
-        self.renderedLon = float(self.config['Locations']['centerLon'])
-        self.osm.set_center_and_zoom(self.renderedLat,
-            self.renderedLon,
-            2 #zoomed out, big picture
-        )
+        
         #Now map-source required or it gets some mysterious null pointers and render issue:
         try:
             self.osm.set_property("map-source", osmgpsmap.MapSource_t.LAST)
@@ -289,6 +284,42 @@ class UI:
                 self.setTX(float(self.config['Locations']['txlat']), float(self.config['Locations']['txlon']))
                 self.setRX(float(self.config['Locations']['rxlat']), float(self.config['Locations']['rxlon']))
 
+        if not 'RXTX' in self.config:
+            #Initialize defaults
+            self.config['RXTX'] = {
+                'rxgain' : '2.0',
+                'txgain' : '2.0',
+                'txpower': '50',
+                'noise' : 'RURAL',
+                'txant' : 'ISOTROPIC',
+                'rxant' : 'ISOTROPIC',
+                'path' : 'SHORTPATH',
+                #mode = BW,SWR:
+                'BW' : '3000',
+                'SWR' : '15'
+            }
+        else:
+            if 'rxgain' in self.config['RXTX']:
+                self.txGainEntry.set_text(self.config['RXTX']['txgain'])
+                self.rxGainEntry.set_text(self.config['RXTX']['rxgain'])
+                self.txWattEntry.set_text(self.config['RXTX']['txpower'])
+                self.noiseValue = self.config['RXTX']['noise']
+                self.setNoiseDisp(self.noiseValue)
+                self.txAntenna=self.config['RXTX']['txant']
+                self.rxAntenna=self.config['RXTX']['rxant']
+                self.setAntDisp()
+                self.path=self.config['RXTX']['path']
+                self.BW = self.config['RXTX']['bw']
+                self.SNR = self.config['RXTX']['snr']
+                self.setPathDisp()
+                self.setModeDisp()
+
+        self.renderedLat = float(self.config['Locations']['centerLat'])
+        self.renderedLon = float(self.config['Locations']['centerLon'])
+        self.osm.set_center_and_zoom(self.renderedLat,
+            self.renderedLon,
+            2 #zoomed out, big picture
+        )
         self.osm.show()
 
         self.mapOverlay = self.builder.get_object('MapOverlay')
@@ -323,6 +354,34 @@ class UI:
         self.lastlon=0
         GLib.timeout_add(1000, self.downloadBackground)
         GLib.timeout_add(3000, self.updateMessage)
+
+    def setNoiseDisp(self, key, default_index=0):
+        for i, row in enumerate(self.noiseListStore):
+            if row[0] == key:
+                self.noiseComboBox.set_active_iter(row.iter)
+                return
+        self.noiseComboBox.set_active(default_index)  # fallback if not found
+
+    def setPathDisp(self):
+        for i, row in enumerate(self.pathListStore):
+            if row[0] == self.path:
+                self.pathComboBox.set_active_iter(row.iter)
+
+    def setModeDisp(self):
+        mode = self.BW + ','+self.SNR
+        print('checking for '+mode)
+        for i, row in enumerate(self.trafficListStore):
+            #Defined as BW,SNR see earlier trafficListStore.append....s
+            if row[0] == mode:
+                self.trafficComboBox.set_active_iter(row.iter)
+
+    def setAntDisp(self):
+        for i,row in enumerate(self.antennaListStore):
+            if row[0] == self.rxAntenna:
+                self.rxComboBox.set_active_iter(row.iter)
+            if row[0] == self.txAntenna:
+                self.txComboBox.set_active_iter(row.iter)
+        
 
     def initSentry(self):
         import sentry_sdk
@@ -909,7 +968,20 @@ DataFilePath "!!CWD!!/HFlib/Data/"
     def cleanup(self, obj):
         self.config['Locations']['centerLat'] = str(self.renderedLat)
         self.config['Locations']['centerLon'] = str(self.renderedLon)
-        #TODO save the rest.
+        self.config['RXTX']['txgain'] = self.txGainEntry.get_text()
+        self.config['RXTX']['rxgain'] = self.rxGainEntry.get_text()
+        self.config['RXTX']['noise'] = self.noiseValue
+        self.config['RXTX']['txmode'] = self.mode
+        self.config['RXTX']['txpower'] = self.txWattEntry.get_text()
+        self.config['RXTX']['txant'] = self.txAntenna
+        self.config['RXTX']['rxant'] = self.rxAntenna
+        self.config['RXTX']['path'] = self.path
+
+        #mode
+        self.config['RXTX']['bw'] = self.BW
+        self.config['RXTX']['snr'] = self.SNR
+
+        self.txGainEntry.get_text()
         self.saveSettings()
         Gtk.main_quit()
     
