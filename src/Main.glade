@@ -162,6 +162,7 @@
                       <object class="GtkImage">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="xpad">5</property>
                         <property name="stock">gtk-find</property>
                       </object>
                       <packing>

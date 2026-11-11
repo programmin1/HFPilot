@@ -15,7 +15,7 @@ from hfcommon import userFile
 
 URL = 'https://hearham.com/rmslist.json'
 MAX_AGE = 12 * 3600  # refresh if cache older than 12hrs.
-MAX_MARKERS = 300 # cap markers drawn at once
+MAX_MARKERS = 1000 # cap markers drawn at once
 MIN_ZOOM = 4    # don't draw markers when zoomed out further than this
 MAX_ROWS = 2500
 

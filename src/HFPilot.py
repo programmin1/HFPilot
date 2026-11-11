@@ -670,12 +670,10 @@ class UI:
         self.winlink.open()
 
     def switchClicked(self, widget):
-        newtxlat = self.rxLatEntry.get_text()
-        newtxlon = self.rxLonEntry.get_text()
-        self.rxLatEntry.set_text(self.txLatEntry.get_text())
-        self.rxLonEntry.set_text(self.txLonEntry.get_text())
-        self.txLatEntry.set_text(newtxlat)
-        self.txLonEntry.set_text(newtxlon)
+        newtxlat = float(self.rxLatEntry.get_text())
+        newtxlon = float(self.rxLonEntry.get_text())
+        self.setRX(float(self.txLatEntry.get_text()), float(self.txLonEntry.get_text()))
+        self.setTX(newtxlat, newtxlon)
 
     def TXActivate(self, widget):
         #Thread frees up UI and does not freeze window.

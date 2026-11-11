@@ -1,5 +1,6 @@
 ./src/ca-bundle.crt
 ./src/debounce.py
+./src/globe.svg
 ./src/grid_output.png
 ./src/hfcommon.py
 ./src/HFlib
@@ -13,6 +14,8 @@
 ./src/RX.svg
 ./src/sentry_sdk
 ./src/TX.svg
+./src/Winlink.glade
+./src/winlink.py
 ./resources/hf-pilot.desktop
 ./resources/hf-pilot
 ./resources/hf-pilot.svg

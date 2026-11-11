@@ -1,3 +1,9 @@
+hf-pilot (0.8) beta; urgency=medium
+  * Winlink gateways can now be shown on the map.
+  * Reverse TX and RX button now works properly.
+
+ -- Luke <luke@hearham.live>  Wed, 11 Nov 2026 13:10:00 -0800
+
 hf-pilot (0.7) beta; urgency=high
   * Fix for loading on latest Ubuntu.
   * Saving of the values and optionally save your rx/tx points.
