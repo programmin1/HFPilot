@@ -18,6 +18,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 """
 import configparser
 import tempfile #windows too
+from winlink import WinlinkController
 import os
 import sys
 import ssl
@@ -27,10 +28,10 @@ sys.argv[0] = 'hf-pilot'
 if getattr(sys, 'frozen', False):
     # Running as PyInstaller exe
     base_path = sys._MEIPASS
-    
+
     # Point GIO to the bundled modules
     os.environ['GIO_MODULE_DIR'] = os.path.join(base_path, 'lib', 'gio', 'modules')
-    
+
     # Point gnutls to bundled certs
     cert_path = os.path.abspath('ca-bundle.crt')
     os.environ['GNUTLS_TRUST_FILE'] = cert_path
@@ -118,7 +119,7 @@ class BackgroundDownload(Thread):
         try:
             tmpfile = tempfile.gettempdir()+'/output'+str(int(time.time()))+str(random.random())
             req = urllib.request.Request(
-                self.url, 
+                self.url,
                 data=None,
                 headers={
                     'User-Agent': 'Python-urllib/'+python_version
@@ -158,7 +159,7 @@ class UI:
         else: #defaults:
             self.config['Diagnostics'] = {}
         if not 'SendReport' in self.config['Diagnostics']:
-            dlg = Gtk.MessageDialog(self.dialog, 
+            dlg = Gtk.MessageDialog(self.dialog,
                 0,Gtk.MessageType.INFO,
                 Gtk.ButtonsType.YES_NO,
                 'Do you want to send exception reports for HFPilot?\nChoose yes to improve reliability and notify administrators of any errors!')
@@ -175,7 +176,7 @@ class UI:
             dlg.destroy()
         if self.config['Diagnostics']['SendReport'] and 'False' != self.config['Diagnostics']['SendReport']:
             self.initSentry()
-        
+
         self.txAntenna = 'ISOTROPIC'
         self.rxAntenna = 'ISOTROPIC'
         self.noiseValue = 'RESIDENTIAL'
@@ -237,7 +238,7 @@ class UI:
             repo_uri=privatetilesapi,
             image_format='jpg',
         )
-        
+
         #Now map-source required or it gets some mysterious null pointers and render issue:
         try:
             self.osm.set_property("map-source", osmgpsmap.MapSource_t.LAST)
@@ -255,7 +256,7 @@ class UI:
                 show_dpad=False,
                 show_zoom=True,
                 show_crosshair=False)
-        
+
         icon_app_path = '/usr/share/icons/hicolor/scalable/apps/hf-pilot.svg'
         if os.path.exists(icon_app_path):
             pixbuf = GdkPixbuf.Pixbuf.new_from_file(icon_app_path)
@@ -354,6 +355,7 @@ class UI:
         self.lastlon=0
         GLib.timeout_add(1000, self.downloadBackground)
         GLib.timeout_add(3000, self.updateMessage)
+        self.winlink = WinlinkController(self, ssl_context)
 
     def setNoiseDisp(self, key, default_index=0):
         for i, row in enumerate(self.noiseListStore):
@@ -381,7 +383,7 @@ class UI:
                 self.rxComboBox.set_active_iter(row.iter)
             if row[0] == self.txAntenna:
                 self.txComboBox.set_active_iter(row.iter)
-        
+
 
     def initSentry(self):
         import sentry_sdk
@@ -392,7 +394,7 @@ class UI:
             send_default_pii=True,
         )
         print('Exceptions will be reported.')
-    
+
     def downloadBackground(self):
         if os.name == 'nt':
             oscall='windows'
@@ -421,12 +423,12 @@ class UI:
                     if response == Gtk.ResponseType.YES:
                         self.openLink(updateinfo['link'])
                     dlg.destroy()
-                        
+
             except Exception as e:
                 print(e)
                 print('Error update check')
             Gdk.threads_leave()
-        
+
     def antennas(self):
         """
         Return the [values, display string]
@@ -477,7 +479,7 @@ class UI:
             code = model[active][0]
             self.noiseValue = code
             self.runPrediction()
-    
+
     def txComboChanged(self,widget, data=None):
         model = widget.get_model()
         active = widget.get_active()
@@ -485,7 +487,7 @@ class UI:
             code = model[active][0]
             self.txAntenna=code
             self.runPrediction()
-    
+
     def rxComboChanged(self,widget, data=None):
         model = widget.get_model()
         active = widget.get_active()
@@ -502,7 +504,7 @@ class UI:
             self.BW = code.split(',')[0]
             self.SNR = code.split(',')[1]
             self.runPrediction()
-    
+
 
     def numericChanged(self,widget,data=None):
         if not self.rxmark or not self.txmark:
@@ -536,7 +538,7 @@ class UI:
         lbl.override_color(Gtk.StateFlags.NORMAL,  Gdk.RGBA(0.0, 0.0, 0.8, 1.0))
         lbl.connect("button-press-event", connectfunction)
         return lbl
-    
+
     def setTX(self,lat,lon):
         if self.txmark:
             self.osm.image_remove(self.txmark)
@@ -581,7 +583,7 @@ class UI:
         rxlon = self.txLonEntry.get_text()
         self.setTX(float(txlat), float(txlon))
         self.setRX(float(rxlat), float(rxlon))
-    
+
     def search_call(self, srctext, finishfunction):
         try:
             pluscode = openlocationcode.decode(srctext)
@@ -597,12 +599,12 @@ class UI:
                     self.clearRows()
                     lat, lon = self.osm.props.latitude, self.osm.props.longitude
                     noneFound = True;
-                 
-                    
+
+
                 #What3Words address has 2 . in it:
                 elif re.match( r".*\..*\..*", srctext):
                     req = urllib.request.Request(
-                        'https://hearham.com/api/whatthreewords/v1?words=%s' % (urllib.parse.quote(srctext),), 
+                        'https://hearham.com/api/whatthreewords/v1?words=%s' % (urllib.parse.quote(srctext),),
                         data=None,
                         headers={
                             'User-Agent': 'HFPilot/'+self.version
@@ -615,9 +617,9 @@ class UI:
                     else:
                         finishfunction(objs['coordinates']['lat'], objs['coordinates']['lng'])
                 else:
-                    # Use new query format https://github.com/osm-search/Nominatim/issues/2121 
+                    # Use new query format https://github.com/osm-search/Nominatim/issues/2121
                     req = urllib.request.Request(
-                        'https://nominatim.openstreetmap.org/search?q=%s&format=json&limit=50' % (urllib.parse.quote(srctext),), 
+                        'https://nominatim.openstreetmap.org/search?q=%s&format=json&limit=50' % (urllib.parse.quote(srctext),),
                         data=None,
                         headers={
                             'User-Agent': 'HFPilot/'+self.version
@@ -630,7 +632,7 @@ class UI:
                         break
                     if len(objs)==0:
                         req = urllib.request.Request(
-                            'https://hamcall.dev/'+srctext+'.json', 
+                            'https://hamcall.dev/'+srctext+'.json',
                             data=None,
                             headers={
                                 'User-Agent': 'HFPilot/'+self.version
@@ -642,7 +644,7 @@ class UI:
             except urllib.error.URLError as e:
                 print("Could not find "+srctext)
                 print(e)
-                
+
     def zoom_in_clicked(self, button):
         self.osm.set_zoom(self.osm.props.zoom + 1)
 
@@ -652,10 +654,10 @@ class UI:
     def home_clicked(self, button):
         #self.getlocation() #Freezes up, odd.
         GLib.timeout_add(1, self.getlocation)
-        
+
     def back_clicked(self, button):
         self.osm.set_center_and_zoom(self.lastLat, self.lastLon, 12)
-    
+
     def TXMapChoice(self, widget):
         if(widget.get_active()):
             self.rxChoiceBtn.set_active(False)
@@ -664,6 +666,16 @@ class UI:
         if(widget.get_active()):
             self.txChoiceBtn.set_active(False)
 
+    def winlinkOpen(self, widget):
+        self.winlink.open()
+
+    def switchClicked(self, widget):
+        newtxlat = self.rxLatEntry.get_text()
+        newtxlon = self.rxLonEntry.get_text()
+        self.rxLatEntry.set_text(self.txLatEntry.get_text())
+        self.rxLonEntry.set_text(self.txLonEntry.get_text())
+        self.txLatEntry.set_text(newtxlat)
+        self.txLonEntry.set_text(newtxlon)
 
     def TXActivate(self, widget):
         #Thread frees up UI and does not freeze window.
@@ -676,7 +688,7 @@ class UI:
         Thread(target=self.search_call, args=[widget.get_text(), self.setRX]).start()
         #GLib.timeout_add(1, self.search_call, widget.get_text(), self.setRX)
         #self.search_call(widget.get_text(), self.setRX)
-        
+
     def searchToggle_clicked(self,button):
         if self.mode == 'search':
             self.mode = ''
@@ -684,11 +696,11 @@ class UI:
             self.mode = 'search'
             self.search_text.grab_focus()
         self.setViews()
-        
-    
+
+
     def privacySettingsOpen(self):
         Gdk.threads_enter()
-        dlg = Gtk.MessageDialog(self, 
+        dlg = Gtk.MessageDialog(self,
             0,Gtk.MessageType.WARNING,
             Gtk.ButtonsType.OK,
             __('Please allow geolocation to use this feature.'))
@@ -700,7 +712,7 @@ class UI:
     def refreshListing(self):
         # cursor lat,lon = self.osm.get_event_location(event).get_degrees()
         lat, lon = self.osm.props.latitude, self.osm.props.longitude
-    
+
     def playpause(self, btn):
         if btn.selFrequency != self.playingfreq:
             self.playRTLSDR(btn.selFrequency)
@@ -728,6 +740,8 @@ class UI:
         changed = False;
         if lat==self.lastlat and lon == self.lastlon:
             #Down and up, click.
+            if left and self.winlink.handle_click(lat, lon):
+                return
             if left and self.txChoiceBtn.get_active():
                 self.setTX(lat,lon)
                 changed = True
@@ -736,7 +750,7 @@ class UI:
                 changed = True
             if changed:
                 self.runPrediction()
-        
+
     def on_button_press(self, osm, event):
         state = event.get_state()
         lat,lon = self.osm.get_event_location(event).get_degrees()
@@ -891,7 +905,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
     def create_colored_grid(self, grid_data, cell_size=100, output_file="grid_output.png"):
         """
         Create a colored grid image with numbers 0-9 in each cell.
-        
+
         Args:
             grid_data: 2D list where each element is a dict like {'value': 5, 'color': (255, 0, 0)}
             cell_size: Size of each cell in pixels
@@ -902,13 +916,13 @@ DataFilePath "!!CWD!!/HFlib/Data/"
 
         leftmargin = 30
         topmargin = 50
-        
+
         # Create image
         img_width = cols * cell_size + leftmargin
         img_height = rows * cell_size + topmargin
         img = Image.new('RGB', (img_width, img_height), 'white')
         draw = ImageDraw.Draw(img)
-        
+
         # Try to load a font, fall back to default if not available
         try:
             font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", cell_size // 3)
@@ -932,31 +946,31 @@ DataFilePath "!!CWD!!/HFlib/Data/"
                 cell = grid_data[row][col]
                 value = cell['value']
                 color = cell['color']
-                
+
                 # Calculate cell position
                 x1 = col * cell_size
                 y1 = row * cell_size
                 x2 = x1 + cell_size
                 y2 = y1 + cell_size
-                
+
                 # Draw cell background
                 draw.rectangle([leftmargin+x1, topmargin+y1, leftmargin+x2, topmargin+y2], fill=color, outline='black', width=2)
-                
+
                 # Draw text centered in cell
                 text = str(value)
                 bbox = draw.textbbox((0, 0), text, font=font)
                 text_width = bbox[2] - bbox[0]
                 text_height = bbox[3] - bbox[1]
-                
+
                 text_x = leftmargin + x1 + (cell_size - text_width) // 2
                 text_y = topmargin  + y1 + (cell_size - text_height) // 2
-                
+
                 # Choose text color based on background brightness
                 brightness = sum(color) / 3
                 text_color = 'white' if brightness < 128 else 'black'
-                
+
                 draw.text((text_x, text_y), text, fill=text_color, font=font)
-            
+
         # Save image
         img.save(output_file)
         return img
@@ -964,7 +978,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
     def saveSettings(self):
         with open(userFile('settings.ini'),'w') as outfile:
             self.config.write(outfile)
-    
+
     def cleanup(self, obj):
         self.config['Locations']['centerLat'] = str(self.renderedLat)
         self.config['Locations']['centerLon'] = str(self.renderedLon)
@@ -983,7 +997,7 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         self.txGainEntry.get_text()
         self.saveSettings()
         Gtk.main_quit()
-    
+
 
 if __name__ == "__main__":
     u = UI()

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkListStore" id="winlinkStore">
+    <columns>
+      <column type="gchararray"/> <!-- callsign -->
+      <column type="gchararray"/> <!-- grid -->
+      <column type="gchararray"/> <!-- channel count -->
+      <column type="gchararray"/> <!-- distance -->
+      <column type="gchararray"/> <!-- id -->
+    </columns>
+  </object>
+  <object class="GtkDialog" id="WinlinkDialog">
+    <property name="title">Winlink Stations</property>
+    <property name="default-width">520</property>
+    <property name="default-height">620</property>
+    <property name="type-hint">dialog</property>
+    <signal name="delete-event" handler="on_dialog_delete"/>
+    <signal name="response" handler="on_dialog_response"/>
+    <child internal-child="vbox">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">8</property>
+        <property name="margin">10</property>
+        <child>
+          <object class="GtkCheckButton" id="winlinkShowCheck">
+            <property name="label">Show stations on map</property>
+            <signal name="toggled" handler="on_show_toggled"/>
+          </object>
+          <packing><property name="expand">False</property></packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="xalign">0</property>
+            <property name="wrap">True</property>
+            <property name="label">Nearest to TX, or map center if TX is unset. These are available offline.</property>
+            <attributes><attribute name="scale" value="0.85"/></attributes>
+          </object>
+          <packing><property name="expand">False</property></packing>
+        </child>
+        <child>
+          <object class="GtkSearchEntry" id="winlinkSearch">
+            <property name="placeholder-text">Callsign, grid, mode, or MHz</property>
+            <signal name="search-changed" handler="on_search_changed"/>
+          </object>
+          <packing><property name="expand">False</property></packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="shadow-type">in</property>
+            <property name="min-content-height">200</property>
+            <child>
+              <object class="GtkTreeView" id="winlinkTree">
+                <property name="model">winlinkStore</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection">
+                    <signal name="changed" handler="on_selection_changed"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn">
+                    <property name="title">Callsign</property>
+                    <child><object class="GtkCellRendererText"/><attributes><attribute name="text">0</attribute></attributes></child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn">
+                    <property name="title">Grid</property>
+                    <child><object class="GtkCellRendererText"/><attributes><attribute name="text">1</attribute></attributes></child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn">
+                    <property name="title">Channels</property>
+                    <child><object class="GtkCellRendererText"/><attributes><attribute name="text">2</attribute></attributes></child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn">
+                    <property name="title">Distance</property>
+                    <child><object class="GtkCellRendererText"/><attributes><attribute name="text">3</attribute></attributes></child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="shadow-type">in</property>
+            <property name="min-content-height">110</property>
+            <child>
+              <object class="GtkLabel" id="winlinkDetail">
+                <property name="xalign">0</property>
+                <property name="yalign">0</property>
+                <property name="selectable">True</property>
+                <property name="margin">6</property>
+              </object>
+            </child>
+          </object>
+          <packing><property name="expand">False</property></packing>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="spacing">8</property>
+            <child>
+              <object class="GtkButton" id="winlinkTxBtn">
+                <property name="label">Use as TX</property>
+                <property name="sensitive">False</property>
+                <signal name="clicked" handler="on_use_tx"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="winlinkRxBtn">
+                <property name="label">Use as RX</property>
+                <property name="sensitive">False</property>
+                <signal name="clicked" handler="on_use_rx"/>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">6</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="winlinkStatus">
+            <property name="can-focus">False</property>
+            <property name="opacity">0.5</property>
+            <property name="wrap">True</property>
+            <property name="xalign">0</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack-type">end</property>
+            <property name="position">7</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <child internal-child="action_area">
+      <object class="GtkButtonBox">
+        <property name="layout-style">end</property>
+        <child><object class="GtkButton" id="winlinkClose"><property name="label">Done</property></object></child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-7">winlinkClose</action-widget>
+    </action-widgets>
+  </object>
+</interface>
