@@ -12,7 +12,7 @@
 !define DESCRIPTION "HFPilot, Shortwave and Ham radio propagation"
 # These three must be integers
 !define VERSIONMAJOR 0
-!define VERSIONMINOR 7
+!define VERSIONMINOR 8
 !define VERSIONBUILD 0
 # These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
 # It is possible to use "mailto:" links in here to open the email client
@@ -20,7 +20,7 @@
 !define UPDATEURL "http://hearham.com/" # "Product Updates" link
 !define ABOUTURL "http://hearham.com/" # "Publisher" link
 # This is the size (in kB) of all the files copied into "Program Files"
-!define INSTALLSIZE 100000
+!define INSTALLSIZE 380000
  
 RequestExecutionLevel admin ;Require admin rights on NT6+ (When UAC is turned on)
  
