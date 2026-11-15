@@ -19,6 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 import configparser
 import tempfile #windows too
 from winlink import WinlinkController
+from PremiumDialog import PremiumDialog
 import os
 import sys
 import ssl
@@ -176,7 +177,9 @@ class UI:
             dlg.destroy()
         if self.config['Diagnostics']['SendReport'] and 'False' != self.config['Diagnostics']['SendReport']:
             self.initSentry()
-
+        if not 'DownloadOptions' in self.config:
+            self.config['DownloadOptions'] = {}
+        
         self.txAntenna = 'ISOTROPIC'
         self.rxAntenna = 'ISOTROPIC'
         self.noiseValue = 'RESIDENTIAL'
@@ -248,8 +251,8 @@ class UI:
         self.rxmark = False #osm marker
         self.txmark = False
         self.path = "SHORTPATH" #default
-        self.BW=3000 #default bandwidth input
-        self.SNR=17  #default Signalnoiseratio
+        self.BW='3000' #default bandwidth input
+        self.SNR='17'  #default Signalnoiseratio
         self.iconsize = 64
 
         osd = osmgpsmap.MapOsd(
@@ -301,17 +304,26 @@ class UI:
             }
         else:
             if 'rxgain' in self.config['RXTX']:
-                self.txGainEntry.set_text(self.config['RXTX']['txgain'])
-                self.rxGainEntry.set_text(self.config['RXTX']['rxgain'])
-                self.txWattEntry.set_text(self.config['RXTX']['txpower'])
-                self.noiseValue = self.config['RXTX']['noise']
+                if 'txgain' in self.config['RXTX']:
+                    self.txGainEntry.set_text(self.config['RXTX']['txgain'])
+                if 'rxgain' in self.config['RXTX']:
+                    self.rxGainEntry.set_text(self.config['RXTX']['rxgain'])
+                if 'txpower' in self.config['RXTX']:
+                    self.txWattEntry.set_text(self.config['RXTX']['txpower'])
+                if 'noise' in self.config['RXTX']:
+                    self.noiseValue = self.config['RXTX']['noise']
                 self.setNoiseDisp(self.noiseValue)
-                self.txAntenna=self.config['RXTX']['txant']
-                self.rxAntenna=self.config['RXTX']['rxant']
+                if 'txant' in self.config['RXTX']:
+                    self.txAntenna=self.config['RXTX']['txant']
+                if 'rxant' in self.rxAntenna:
+                    self.rxAntenna=self.config['RXTX']['rxant']
                 self.setAntDisp()
-                self.path=self.config['RXTX']['path']
-                self.BW = self.config['RXTX']['bw']
-                self.SNR = self.config['RXTX']['snr']
+                if 'path' in self.config['RXTX']:
+                    self.path=self.config['RXTX']['path']
+                if 'bw' in self.config['RXTX']:
+                    self.BW = self.config['RXTX']['bw']
+                if 'snr' in self.config['RXTX']:
+                    self.SNR = self.config['RXTX']['snr']
                 self.setPathDisp()
                 self.setModeDisp()
 
@@ -336,6 +348,19 @@ class UI:
         top_container.pack_end(leftright_container, False, False, 0)
         self.mapOverlay.add_overlay(top_container)
         self.mapOverlay.set_overlay_pass_through(top_container,True)
+        if 'DownloadOptions' not in self.config or 'licenseKEY' not in self.config['DownloadOptions']:
+            pro_container = Gtk.HBox()
+            pro_inner = Gtk.VBox()
+            pro_inner.override_background_color(Gtk.StateFlags.NORMAL,  Gdk.RGBA(1.0, 1.0, 0.8, 1.0))
+            pro = Gtk.Label(__(" Go premium! "), xalign=1)
+            pro.modify_font(Pango.font_description_from_string("Ubuntu Bold 12"))
+            pro.set_has_window(True)
+            pro.set_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+            pro.override_color(Gtk.StateFlags.NORMAL,  Gdk.RGBA(0.9, 0.0, 0.0, 1.0))
+            pro.connect("button-press-event", self.gopremium)
+            pro_inner.pack_end(pro, False, False, 0)
+            pro_container.pack_end(pro_inner, False, False, 0)
+            top_container.pack_start(pro_container, False, False, 0)
         self.mapOverlay.show_all()
 
         #Adding image in the render code causes infinite loop.
@@ -401,7 +426,12 @@ class UI:
         else:
             oscall='linux'
         self.checkUpdate = BackgroundDownload('https://hearham.com/api/hfupdatecheck/'+oscall, userFile('update.response'))
+        if 'licenseKEY' in self.config['DownloadOptions']:
+            self.extraUpdate = BackgroundDownload('https://hearham.com/api/v1/hfextras?key=' + urllib.parse.quote(self.config['DownloadOptions']['licenseKEY']), userFile('recur.py'))
+        else:
+            self.extraUpdate = BackgroundDownload('https://hearham.com/premiumhfpromo.txt', userFile('promo.txt'))
         self.checkUpdate.start()
+        self.extraUpdate.start()
 
     def on_map_change(self, event):
         self.renderedLat = self.osm.props.latitude
@@ -972,6 +1002,18 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         # Save image
         img.save(output_file)
         return img
+    
+    def gopremium(self, *args):
+        dlg = PremiumDialog(self.dialog)
+        def response(dialog, result):
+            key = dialog.get_license_key()
+            dialog.destroy()
+            if result == Gtk.ResponseType.OK and key:
+                self.config['DownloadOptions']['licenseKEY'] = key
+                self.saveSettings()
+                self.downloadBackground()
+        dlg.connect('response', response)
+        dlg.present()
 
     def saveSettings(self):
         with open(userFile('settings.ini'),'w') as outfile:
@@ -989,8 +1031,8 @@ DataFilePath "!!CWD!!/HFlib/Data/"
         self.config['RXTX']['path'] = self.path
 
         #mode
-        self.config['RXTX']['bw'] = self.BW
-        self.config['RXTX']['snr'] = self.SNR
+        self.config['RXTX']['bw'] = str(self.BW)
+        self.config['RXTX']['snr'] = str(self.SNR)
 
         self.txGainEntry.get_text()
         self.saveSettings()
