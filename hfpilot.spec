@@ -30,6 +30,7 @@ datas = [
     ('src/Main.glade', '.'),
     ('src/Winlink.glade', '.'),
     ('src/winlink.py', '.'),
+    ('src/PremiumDialog.py', '.'),
     ('src/globe.svg', '.'),
     ('src/README-WINDOWS.TXT', '.'),
     ('src/ca-bundle.crt','.')
