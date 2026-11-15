@@ -1,3 +1,10 @@
+hf-pilot (0.9) beta; urgency=medium
+  * Better dialog width initially.
+  * Fix a case where not fully set up settings.ini could crash the program.
+  * Promo in corner of map.
+
+ -- Luke <luke@hearham.live>  Sat, 14 Nov 2026 21:15:00 -0800
+
 hf-pilot (0.8) beta; urgency=medium
   * Winlink gateways can now be shown on the map.
   * Reverse TX and RX button now works properly.

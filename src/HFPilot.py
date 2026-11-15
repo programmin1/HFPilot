@@ -143,7 +143,7 @@ class BackgroundDownload(Thread):
 class UI:
     def __init__(self):
         #Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
-        self.version = '0.8' #program version.
+        self.version = '0.9' #program version.
         self.mode = ''
         self.builder = Gtk.Builder()
         self.builder.add_from_file('Main.glade')
